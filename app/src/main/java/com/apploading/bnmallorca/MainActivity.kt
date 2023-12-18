@@ -17,9 +17,12 @@ import com.apploading.bnmallorca.service.MediaPlaybackService
 import com.apploading.bnmallorca.views.TrackViewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+    lateinit var mediaController: ListenableFuture<MediaController>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -69,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         val sessionToken = SessionToken(this, ComponentName(this, MediaPlaybackService::class.java))
-        val mediaController = MediaController.Builder(this, sessionToken).buildAsync()
+        mediaController = MediaController.Builder(this, sessionToken).buildAsync()
 
         playPauseView.setOnClickListener {
             val controller = mediaController.get()
