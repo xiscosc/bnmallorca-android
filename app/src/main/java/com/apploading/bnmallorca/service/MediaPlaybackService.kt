@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
@@ -35,16 +36,26 @@ class MediaPlaybackService : MediaSessionService() {
         "android.resource://com.apploading.bnmallorca/drawable/album_placeholder"
     private lateinit var nBuilder: NotificationCompat.Builder
     private lateinit var notificationManager: NotificationManager
+    private val pauseReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                ACTION_PAUSE -> {
+                    mediaSession?.player?.pause()
+                }
+            }
+        }
+    }
 
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
         val track = TrackManager.getTrackFromNotificationSharedPreferences(this)
-        Log.d("MEDIA3", "registered $track")
+        Log.d(TAG, "New track received: $track")
         if (track !== null && mediaSession?.player?.isPlaying == true) {
+            Log.d(TAG, "Updating notification...")
             val media = mediaSession!!.player.currentMediaItem!!
             val metaCopy = media.mediaMetadata
                 .buildUpon()
-                .setArtist(track.artist)
-                .setTitle(track.name)
+                .setArtist(TrackManager.filterTrackString(track.artist))
+                .setTitle(TrackManager.filterTrackString(track.name))
                 .setArtworkUri(Uri.parse(TrackManager.getAlbumArtUrl(track) ?: defaultAlbumArt))
                 .build()
 
@@ -55,8 +66,8 @@ class MediaPlaybackService : MediaSessionService() {
             mediaSession!!.player.replaceMediaItem(0, itemCopy)
 
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-                nBuilder.setSubText(track.artist)
-                nBuilder.setContentTitle(track.name)
+                nBuilder.setSubText(TrackManager.filterTrackString(track.artist))
+                nBuilder.setContentTitle(TrackManager.filterTrackString(track.name))
                 notificationManager.notify(1, nBuilder.build())
             }
         }
@@ -70,7 +81,11 @@ class MediaPlaybackService : MediaSessionService() {
             addAction(ACTION_PAUSE)
         }
 
-        registerReceiver(receiver, filter)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(pauseReceiver, filter)
+        } else {
+            registerReceiver(pauseReceiver, filter, RECEIVER_NOT_EXPORTED)
+        }
 
         TrackManager.storePlayingStatus(false, this)
         val sharedPreferences = TrackManager.getSharedPreferencesForNotification(this)
@@ -158,19 +173,26 @@ class MediaPlaybackService : MediaSessionService() {
             val track = TrackManager.getTrackFromSharedPreferences(this@MediaPlaybackService)
             nBuilder.setSubText(track?.artist ?: "Bn Mallorca Radio")
             nBuilder.setContentTitle(track?.name ?: "Independencia Musical")
-            nBuilder.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.album_placeholder))
+            nBuilder.setLargeIcon(
+                BitmapFactory.decodeResource(
+                    resources,
+                    R.drawable.album_placeholder
+                )
+            )
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            val pauseIntent = Intent(ACTION_PAUSE)
-
             val pausePendingIntent: PendingIntent = PendingIntent.getBroadcast(
                 this,
                 REQUEST_CODE_PAUSE,
-                pauseIntent,
+                Intent(ACTION_PAUSE),
                 PendingIntent.FLAG_IMMUTABLE
             )
-            nBuilder.addAction(androidx.media3.session.R.drawable.media3_notification_pause, "Pause", pausePendingIntent)
+            nBuilder.addAction(
+                androidx.media3.session.R.drawable.media3_notification_pause,
+                "Pause",
+                pausePendingIntent
+            )
             nBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             style.setShowActionsInCompactView(0)
         }
@@ -188,7 +210,7 @@ class MediaPlaybackService : MediaSessionService() {
 
         val sharedPreferences = TrackManager.getSharedPreferencesForNotification(this)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener)
-        unregisterReceiver(receiver)
+        unregisterReceiver(pauseReceiver)
         super.onDestroy()
     }
 
@@ -205,16 +227,6 @@ class MediaPlaybackService : MediaSessionService() {
     companion object {
         const val ACTION_PAUSE = "action.PAUSE"
         const val REQUEST_CODE_PAUSE = 0
-    }
-
-    // Create a BroadcastReceiver in your MediaSessionService
-    private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                ACTION_PAUSE -> {
-                    mediaSession?.player?.pause()
-                }
-            }
-        }
+        const val TAG = "MediaPlaybackService"
     }
 }

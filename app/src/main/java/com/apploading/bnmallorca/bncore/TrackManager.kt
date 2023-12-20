@@ -59,7 +59,7 @@ class TrackManager {
                 tracks[0]
             }
 
-            storeTrackInSharedPreferences(track, context)
+            storeTrackInSharedPreferences(track, context, true)
         }
 
         fun storePlayingStatus(status: Boolean, context: Context) {
@@ -67,16 +67,23 @@ class TrackManager {
             trackSharedPreferences.edit().putBoolean(TRACK_PLAYING_STATUS_FIELD, status).apply()
         }
 
-        fun storeTrackInSharedPreferences(track: Track, context: Context) {
+        fun storeTrackInSharedPreferences(
+            track: Track,
+            context: Context,
+            override: Boolean = false
+        ) {
             val trackPreferences = getSharedPreferencesForTrack(context)
             val notificationPreferences = getSharedPreferencesForNotification(context)
 
-            val currentTimestamp = trackPreferences.getInt("track_timestamp", 0)
-            if (track.timestamp.toInt() <= currentTimestamp) return
+            if (!override) {
+                val currentTimestamp = trackPreferences.getInt("track_timestamp", 0)
+                if (track.timestamp.toInt() <= currentTimestamp) return
+            }
 
             trackPreferences.edit().putString(TRACK_ARTIST_FIELD, track.artist).apply()
             trackPreferences.edit().putString(TRACK_NAME_FIELD, track.name).apply()
-            trackPreferences.edit().putString(TRACK_ALBUM_ART_URL_FIELD, getAlbumArtUrl(track) ?: "").apply()
+            trackPreferences.edit()
+                .putString(TRACK_ALBUM_ART_URL_FIELD, getAlbumArtUrl(track) ?: "").apply()
             trackPreferences.edit().putInt("track_timestamp", track.timestamp.toInt()).apply()
 
             val gson = Gson()
@@ -119,5 +126,12 @@ class TrackManager {
                 albumArt = albumArtList
             )
         }
+
+        fun filterTrackString(field: String) =
+            if (field.lowercase().trim() in listOf(
+                    "desconocido",
+                    "unknown"
+                )
+            ) "BN Mallorca" else field
     }
 }

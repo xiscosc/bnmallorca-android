@@ -43,11 +43,11 @@ class MainActivity : AppCompatActivity() {
             .into(albumArtView)
 
         trackViewModel.name.observe(this, Observer { newText ->
-            trackNameView.text = newText
+            trackNameView.text = TrackManager.filterTrackString(newText)
         })
 
         trackViewModel.artist.observe(this, Observer { newText ->
-            trackArtistView.text = newText
+            trackArtistView.text = TrackManager.filterTrackString(newText)
         })
 
         trackViewModel.albumArtUrl.observe(this, Observer { newUrl ->
