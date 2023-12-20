@@ -3,8 +3,10 @@ package com.apploading.bnmallorca.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -64,6 +66,11 @@ class MediaPlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
+        val filter = IntentFilter().apply {
+            addAction(ACTION_PAUSE)
+        }
+
+        registerReceiver(receiver, filter)
 
         TrackManager.storePlayingStatus(false, this)
         val sharedPreferences = TrackManager.getSharedPreferencesForNotification(this)
@@ -135,16 +142,17 @@ class MediaPlaybackService : MediaSessionService() {
                 NotificationManager.IMPORTANCE_LOW
             )
         )
-        val intent = Intent(this, MainActivity::class.java).apply {
+        val openAppIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val openAppPendingIntent: PendingIntent =
+            PendingIntent.getActivity(this, 0, openAppIntent, PendingIntent.FLAG_IMMUTABLE)
 
+        val style = MediaStyleNotificationHelper.MediaStyle(session)
         nBuilder = NotificationCompat.Builder(this, "bnmallorca")
-            .setContentIntent(pendingIntent)
+            .setContentIntent(openAppPendingIntent)
             .setSmallIcon(androidx.media3.session.R.drawable.media3_notification_small_icon)
-            .setStyle(MediaStyleNotificationHelper.MediaStyle(session))
+
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
             val track = TrackManager.getTrackFromSharedPreferences(this@MediaPlaybackService)
@@ -152,6 +160,22 @@ class MediaPlaybackService : MediaSessionService() {
             nBuilder.setContentTitle(track?.name ?: "Independencia Musical")
             nBuilder.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.album_placeholder))
         }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            val pauseIntent = Intent(ACTION_PAUSE)
+
+            val pausePendingIntent: PendingIntent = PendingIntent.getBroadcast(
+                this,
+                REQUEST_CODE_PAUSE,
+                pauseIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+            nBuilder.addAction(androidx.media3.session.R.drawable.media3_notification_pause, "Pause", pausePendingIntent)
+            nBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            style.setShowActionsInCompactView(0)
+        }
+
+        nBuilder.setStyle(style)
     }
 
     // Remember to release the player and media session in onDestroy
@@ -164,11 +188,33 @@ class MediaPlaybackService : MediaSessionService() {
 
         val sharedPreferences = TrackManager.getSharedPreferencesForNotification(this)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener)
+        unregisterReceiver(receiver)
         super.onDestroy()
+    }
+
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        stopSelf()
     }
 
 
     override fun onGetSession(
         controllerInfo: MediaSession.ControllerInfo
     ): MediaSession? = mediaSession
+
+    companion object {
+        const val ACTION_PAUSE = "action.PAUSE"
+        const val REQUEST_CODE_PAUSE = 0
+    }
+
+    // Create a BroadcastReceiver in your MediaSessionService
+    private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                ACTION_PAUSE -> {
+                    mediaSession?.player?.pause()
+                }
+            }
+        }
+    }
 }

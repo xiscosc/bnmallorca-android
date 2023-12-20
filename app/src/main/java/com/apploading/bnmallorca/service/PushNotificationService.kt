@@ -1,5 +1,6 @@
 package com.apploading.bnmallorca.service
 
+import android.content.Intent
 import android.util.Log
 import com.google.firebase.messaging.Constants.TAG
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -50,6 +51,10 @@ class PushNotificationService : FirebaseMessagingService() {
     private fun addTrackToPreferences(data: Map<String, String>) {
         val track = TrackManager.buildTrackFromNotification(Gson().toJson(data))
         TrackManager.storeTrackInSharedPreferences(track, this)
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        stopSelf()
     }
 
     override fun onDestroy() {
