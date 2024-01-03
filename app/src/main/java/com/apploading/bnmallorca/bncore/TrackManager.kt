@@ -46,17 +46,18 @@ class TrackManager {
 
         suspend fun updateLastTrackFromApi(context: Context) {
             val api = BnApi.build(context)
-            val tracks = api.getLastTrack().tracks
-            val track = if (tracks.isEmpty()) {
-                Track(
-                    id = "0",
-                    name = "Bn Mallorca Radio",
-                    artist = "Bn Mallorca Radio",
-                    timestamp = 0,
-                    albumArt = listOf()
-                )
-            } else {
-                tracks[0]
+            val defaultTrack = Track(
+                id = "0",
+                name = "Bn Mallorca Radio",
+                artist = "Bn Mallorca Radio",
+                timestamp = 0,
+                albumArt = listOf()
+            )
+            val track = try {
+                val tracks = api.getLastTrack().tracks
+                if (tracks.isEmpty()) defaultTrack else tracks[0]
+            } catch (e: Exception) {
+                defaultTrack
             }
 
             storeTrackInSharedPreferences(track, context, true)
