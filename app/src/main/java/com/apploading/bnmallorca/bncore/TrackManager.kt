@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 
 class TrackManager {
@@ -16,7 +18,7 @@ class TrackManager {
         const val TRACK_ALBUM_ART_URL_FIELD = "track_album_art_url"
         const val TRACK_PLAYING_STATUS_FIELD = "track_playing_status"
 
-        fun getAlbumArtUrl(track: Track): String? {
+        fun getAlbumArtUrl(track: Track, highestQuality: Boolean = true): String? {
             val sizes = sortedSetOf<Int>()
             val urlMap = mutableMapOf<Number, String>()
             track.albumArt.forEach {
@@ -26,7 +28,15 @@ class TrackManager {
             }
 
             if (sizes.isEmpty()) return null
-            return urlMap[sizes.last()]
+            return urlMap[if (highestQuality) sizes.last() else sizes.first()]
+        }
+
+        fun getTimeAgo(track: Track, unit: DurationUnit): Number {
+            val timestampInMillis = track.timestamp.toLong() * 1000
+            val currentTimeInMillis = System.currentTimeMillis()
+            val durationInMillis = currentTimeInMillis - timestampInMillis
+            val duration = durationInMillis.toDuration(DurationUnit.MILLISECONDS)
+            return duration.toInt(unit)
         }
 
         fun buildTrackFromNotification(notification: String): Track {
@@ -45,7 +55,7 @@ class TrackManager {
         }
 
         suspend fun updateLastTrackFromApi(context: Context) {
-            val api = BnApi.build(context)
+            val api = BnApi.build()
             val defaultTrack = Track(
                 id = "0",
                 name = "Bn Mallorca Radio",

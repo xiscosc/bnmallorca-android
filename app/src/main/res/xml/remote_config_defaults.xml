@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<defaults>
+  <entry>
+    <key>api_url</key>
+    <value>https://api.bnmallorca.com</value>
+  </entry>
+  <entry>
+    <key>streaming_url</key>
+    <value>https://stream.recasound.es/proxy/bnmallorca/stream</value>
+  </entry>
+  <entry>
+    <key>configuration</key>
+    <value>{"streaming_url":"https://stream.recasound.es/proxy/bnmallorca/stream","api_endpoint":"https://api.bnmallorca.com","instagram_web_url":"https://www.instagram.com/bnmallorcaradio/","instagram_app_url":"instagram://user?username=bnmallorcaradio","facebook_web_url":"https://www.facebook.com/102766099772454/","facebook_app_url":"fb://profile/BNMallorcaRadio?id=102766099772454"}</value>
+  </entry>
+</defaults>

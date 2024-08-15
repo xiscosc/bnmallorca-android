@@ -14,7 +14,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
@@ -27,10 +26,19 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.MediaStyleNotificationHelper
 import com.apploading.bnmallorca.MainActivity
 import com.apploading.bnmallorca.R
+import com.apploading.bnmallorca.bncore.PushManager
 import com.apploading.bnmallorca.bncore.TrackManager
 import com.google.common.collect.ImmutableList
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class MediaPlaybackService : MediaSessionService() {
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
     private var mediaSession: MediaSession? = null
     private val defaultAlbumArt =
         "android.resource://com.apploading.bnmallorca/drawable/album_placeholder"
@@ -95,7 +103,8 @@ class MediaPlaybackService : MediaSessionService() {
         val forwardingPlayer = object : ForwardingPlayer(player) {
             override fun play() {
                 val track = TrackManager.getTrackFromSharedPreferences(this@MediaPlaybackService)
-                val current = MediaItem.fromUri(Uri.parse(getString(R.string.stream_url)))
+                val uri = Uri.parse(Firebase.remoteConfig.getString("streaming_url"))
+                val current = MediaItem.fromUri(uri)
                 val metaCopy = current.mediaMetadata
                     .buildUpon()
                     .setArtist(track?.artist ?: "Bn Mallorca Radio")
@@ -112,16 +121,37 @@ class MediaPlaybackService : MediaSessionService() {
                 this.prepare()
                 super.play()
                 TrackManager.storePlayingStatus(true, this@MediaPlaybackService)
+                scope.launch {
+                    try {
+                        PushManager.registerDevice(this@MediaPlaybackService, null)
+                    } catch (e: Exception) {
+                        return@launch
+                    }
+                }
             }
 
             override fun pause() {
                 super.stop()
                 TrackManager.storePlayingStatus(false, this@MediaPlaybackService)
+                scope.launch {
+                    try {
+                        PushManager.unregisterDevice(this@MediaPlaybackService)
+                    } catch (e: Exception) {
+                        return@launch
+                    }
+                }
             }
 
             override fun stop() {
                 super.stop()
                 TrackManager.storePlayingStatus(false, this@MediaPlaybackService)
+                scope.launch {
+                    try {
+                        PushManager.unregisterDevice(this@MediaPlaybackService)
+                    } catch (e: Exception) {
+                        return@launch
+                    }
+                }
             }
         }
 
@@ -189,7 +219,7 @@ class MediaPlaybackService : MediaSessionService() {
                 PendingIntent.FLAG_IMMUTABLE
             )
             nBuilder.addAction(
-                androidx.media3.session.R.drawable.media3_notification_pause,
+                androidx.media3.session.R.drawable.media3_icon_pause,
                 "Pause",
                 pausePendingIntent
             )
