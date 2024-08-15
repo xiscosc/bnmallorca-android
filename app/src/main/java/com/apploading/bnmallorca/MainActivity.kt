@@ -1,6 +1,5 @@
 package com.apploading.bnmallorca
 
-import android.app.Activity
 import com.apploading.bnmallorca.ui.navigation.BottomNavigationBar
 import com.apploading.bnmallorca.ui.navigation.NavigationGraph
 import android.content.ComponentName
@@ -13,18 +12,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
+
 
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaController
@@ -50,7 +44,7 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.light(
                 ColorInt.TRANSPARENT,
                 ColorInt.TRANSPARENT
-            ), statusBarStyle = SystemBarStyle.light(ColorInt.TRANSPARENT, ColorInt.TRANSPARENT)
+            )
         )
         super.onCreate(savedInstanceState)
 
@@ -68,7 +62,7 @@ class MainActivity : ComponentActivity() {
         mediaController = MediaController.Builder(this, sessionToken).buildAsync()
 
         setContent {
-            MaterialTheme {
+            AppTheme {
                 Surface(color = Color.Black) {
                     MainScreen(mediaController)
                 }
@@ -86,8 +80,7 @@ class MainActivity : ComponentActivity() {
 fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = MaterialTheme.colorScheme.copy(
-            primary = Color.Black,
-            onPrimary = Color.White,
+            background = Color.Black
         ),
         content = content
     )
