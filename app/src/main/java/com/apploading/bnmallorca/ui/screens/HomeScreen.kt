@@ -21,11 +21,15 @@ import androidx.navigation.NavController
 import com.apploading.bnmallorca.R
 import com.apploading.bnmallorca.ui.components.AlbumArt
 import com.apploading.bnmallorca.ui.components.PlayPauseWithListIcon
+import com.apploading.bnmallorca.ui.navigation.BottomNavItem
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.guava.await
 
 @Composable
-fun HomeScreen(mediaControllerFuture: ListenableFuture<MediaController>, navController: NavController) {
+fun HomeScreen(
+    mediaControllerFuture: ListenableFuture<MediaController>,
+    navController: NavController
+) {
 
     var mediaController by remember { mutableStateOf<MediaController?>(null) }
     var showPlatList by remember { mutableStateOf(false) }
@@ -70,23 +74,21 @@ fun HomeScreen(mediaControllerFuture: ListenableFuture<MediaController>, navCont
                 verticalArrangement = Arrangement.Center // Center content vertically
             ) {
                 if (showPlatList) {
-                    TrackListScreen(onBannerClick = { navController.navigate("services") {
-                        popUpTo("home") { inclusive = false }
-                    }})
+                    TrackListScreen(onBannerClick = {
+                        navController.navigate(BottomNavItem.Services.route)
+                    })
                 } else {
                     AlbumArt()
                 }
             }
 
-
-
             PlayPauseWithListIcon(
                 showPlatList,
                 onPlayPauseClick = {
-                mediaController?.let { controller ->
-                    if (controller.isPlaying) controller.pause() else controller.play()
-                }
-            }, onListClick = { showPlatList = !showPlatList })
+                    mediaController?.let { controller ->
+                        if (controller.isPlaying) controller.pause() else controller.play()
+                    }
+                }, onListClick = { showPlatList = !showPlatList })
         }
     }
 }

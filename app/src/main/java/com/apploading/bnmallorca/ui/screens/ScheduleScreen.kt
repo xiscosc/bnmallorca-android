@@ -46,7 +46,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
         Text(
             text = "Programación",
             color = Color.White,
-            fontSize = 32.sp,
+            fontSize = 34.sp,
             fontWeight = FontWeight.W700,
             modifier = Modifier.padding(bottom = 16.dp)
         )

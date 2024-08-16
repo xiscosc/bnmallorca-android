@@ -1,7 +1,3 @@
 <resources>
-    <string name="app_name">BN Mallorca</string>
-    <string name="api_url">https://api-dev.bnmallorca.com</string>
-    <string name="stream_url">https://stream.recasound.es/proxy/bnmallorca/stream</string>
-    <string name="instagram_url">https://www.instagram.com/bnmallorcaradio</string>
-    <string name="facebook_url">https://www.facebook.com/BNMallorcaRadio</string>
+
 </resources>

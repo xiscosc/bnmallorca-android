@@ -36,7 +36,7 @@ fun ContactScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
@@ -44,7 +44,7 @@ fun ContactScreen() {
         Text(
             text = "Contacto",
             color = Color.White,
-            fontSize = 36.sp,
+            fontSize = 34.sp,
             fontWeight = FontWeight.W700,
             modifier = Modifier.padding(bottom = 65.dp)
         )
