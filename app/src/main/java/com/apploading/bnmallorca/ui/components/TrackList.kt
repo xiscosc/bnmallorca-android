@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.apploading.bnmallorca.R
+import com.apploading.bnmallorca.bncore.RemoteSettingsManager
 import com.apploading.bnmallorca.bncore.Track
 import com.apploading.bnmallorca.bncore.TrackManager
 import com.apploading.bnmallorca.ui.components.ListElement
@@ -147,7 +148,7 @@ fun Banner(onBannerClick: () -> Unit) {
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.album_placeholder )
+                    .data(R.drawable.album_placeholder)
                     .crossfade(true)
                     .build(),
                 contentScale = ContentScale.Crop
@@ -203,7 +204,7 @@ fun TrackItem(track: Track) {
             tint = Color.White,
             modifier = Modifier.size(30.dp)
         )
-    }, onIconClick = {shareText(context, track)}, imageModifier = Modifier.size(72.dp))
+    }, onIconClick = { shareText(context, track) }, imageModifier = Modifier.size(72.dp))
 }
 
 @Composable
@@ -253,7 +254,7 @@ fun getAgoString(track: Track): String {
 
 fun shareText(context: Context, track: Track) {
     val message =
-        "He escuchado ${track.name} de ${track.artist} en la app de BN Mallorca, bájatela aquí https://bnmallorca.com/descarga"
+        "He escuchado ${track.name} de ${track.artist} en la app de BN Mallorca, bájatela aquí ${RemoteSettingsManager.getSettings().appDownloadUrl}"
     val intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, message)

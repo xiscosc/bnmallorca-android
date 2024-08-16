@@ -31,6 +31,7 @@ data class BnMallorcaSettings(
     @SerializedName("streaming_url") val streamingUrl: String,
     @SerializedName("api_endpoint") val apiEndpoint: String,
     @SerializedName("services_url") val servicesUrl: String,
+    @SerializedName("app_download_url") val appDownloadUrl: String,
     @SerializedName("instagram_web_url") val instagramWebUrl: String,
     @SerializedName("instagram_app_url") val instagramAppUrl: String,
     @SerializedName("facebook_web_url") val facebookWebUrl: String,
