@@ -55,8 +55,7 @@ fun PlayPauseWithListIcon(
             tint = if (showPlayList) Color.DarkGray else Color.White,
             modifier = Modifier
                 .size(40.dp)
-                .align(Alignment.CenterStart)
-                .offset(x = (300).dp) // Space between the list icon and the play/pause button
+                .offset(x = (100).dp) // Space between the list icon and the play/pause button
              .clickable { onListClick() }
         )
     }
