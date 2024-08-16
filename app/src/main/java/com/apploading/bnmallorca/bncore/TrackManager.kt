@@ -19,9 +19,13 @@ class TrackManager {
         const val TRACK_PLAYING_STATUS_FIELD = "track_playing_status"
 
         fun getAlbumArtUrl(track: Track, highestQuality: Boolean = true): String? {
+            return getAlbumArtUrl(track.albumArt, highestQuality)
+        }
+
+        fun getAlbumArtUrl(albumArts: List<AlbumArt>, highestQuality: Boolean = true): String? {
             val sizes = sortedSetOf<Int>()
             val urlMap = mutableMapOf<Number, String>()
-            track.albumArt.forEach {
+            albumArts.forEach {
                 val size = it.size.split("x")[0].toIntOrNull() ?: 0
                 sizes.add(size)
                 urlMap[size] = it.downloadUrl

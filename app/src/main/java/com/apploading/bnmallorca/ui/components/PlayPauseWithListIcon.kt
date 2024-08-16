@@ -24,6 +24,7 @@ import com.apploading.bnmallorca.views.TrackViewModel
 
 @Composable
 fun PlayPauseWithListIcon(
+    showPlayList: Boolean,
     onPlayPauseClick: () -> Unit,
     onListClick: () -> Unit,
     trackViewModel: TrackViewModel = hiltViewModel()
@@ -51,7 +52,7 @@ fun PlayPauseWithListIcon(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.FormatListBulleted,
             contentDescription = "Playlist",
-            tint = Color.White,
+            tint = if (showPlayList) Color.DarkGray else Color.White,
             modifier = Modifier
                 .size(40.dp)
                 .align(Alignment.CenterStart)

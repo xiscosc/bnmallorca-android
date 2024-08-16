@@ -2,8 +2,6 @@ package com.apploading.bnmallorca.ui.navigation
 
 import androidx.compose.foundation.background
 import com.apploading.bnmallorca.ui.screens.HomeScreen
-import com.apploading.bnmallorca.ui.screens.ProfileScreen
-import com.apploading.bnmallorca.ui.screens.SettingsScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -11,6 +9,8 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.apploading.bnmallorca.ui.screens.ContactScreen
+import com.apploading.bnmallorca.ui.screens.ScheduleScreen
 import com.apploading.bnmallorca.ui.screens.ServicesScreen
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -21,13 +21,13 @@ fun NavigationGraph(navController: NavHostController, mediaController: Listenabl
         Color.Black
     )) {
         composable(BottomNavItem.Home.route) {
-            HomeScreen( mediaController)
+            HomeScreen(mediaController, navController)
         }
         composable(BottomNavItem.Schedule.route) {
-            ProfileScreen()
+            ScheduleScreen()
         }
         composable(BottomNavItem.Contact.route) {
-            SettingsScreen()
+            ContactScreen()
         }
         composable(BottomNavItem.Services.route) {
             ServicesScreen()

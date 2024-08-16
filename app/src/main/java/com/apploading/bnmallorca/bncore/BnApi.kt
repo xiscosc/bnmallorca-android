@@ -1,8 +1,5 @@
 package com.apploading.bnmallorca.bncore
 
-import android.content.Context
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.remoteconfig.ktx.remoteConfig
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -24,20 +21,21 @@ interface BnApi {
     @POST("/api/v1/register")
     suspend fun registerDevice(@Body data: RegisterDeviceBody)
 
+    @GET("/api/v1/schedule")
+    suspend fun getSchedule(): ScheduleResponse
+
     @POST("/api/v1/unregister")
     suspend fun unregisterDevice(@Body data: RegisterDeviceBody)
 
     companion object {
         fun build(): BnApi {
-            val apiUrl = Firebase.remoteConfig.getString("api_url")
             return Retrofit.Builder()
-                .baseUrl(apiUrl)
+                .baseUrl(RemoteSettingsManager.getSettings().apiEndpoint)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(BnApi::class.java)
         }
     }
-
 }
 
 data class AlbumArt(
@@ -62,4 +60,22 @@ data class TrackResponse(
 data class RegisterDeviceBody(
     val token: String,
     val type: String
+)
+
+data class Show(
+    val name: String,
+    val artist: String,
+    val time: String,
+    val online: Boolean,
+    val podcastLink: String,
+    val albumArt: List<AlbumArt>
+)
+
+data class Day(
+    val numberOfTheWeek: Number,
+    val shows: List<Show>
+)
+
+data class ScheduleResponse(
+    val days: List<Day>
 )

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -64,12 +65,16 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
                 fontSize = 22.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier.align(Alignment.Start),
+                maxLines = 1, // Limit to one line
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = trackInfo.artist, // Observed artist name
                 fontSize = 18.sp,
                 color = Color.White,
+                maxLines = 1, // Limit to one line
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .align(Alignment.Start)
                     .padding(top = 4.dp)

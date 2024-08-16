@@ -19,23 +19,36 @@ class TrackListViewModel @Inject constructor() : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
 
-    private val _isFetching = MutableStateFlow(false)
-    val isFetching: StateFlow<Boolean> get() = _isFetching
+    private val _isPolling = MutableStateFlow(false)
+    val isPolling: StateFlow<Boolean> get() = _isPolling
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> get() = _errorMessage
 
     private var lastTrack: Number? = null // Store the lastTrack value
 
-    fun fetchTracks() {
+    fun loadTracks() {
         viewModelScope.launch {
             _errorMessage.value = null
             try {
-                if (lastTrack == null) {
-                    _isLoading.value = true
-                } else {
-                    _isFetching.value = true
-                }
+                _isLoading.value = true
+                val api = BnApi.build()
+                val response = api.getLastTracks(lastTrack = lastTrack)
+                _trackList.value = response.tracks
+                lastTrack = response.lastTrack // Store the lastTrack for subsequent calls
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun pollTracks() {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            try {
+                _isPolling.value = true
                 val api = BnApi.build()
                 val response = api.getLastTracks(lastTrack = lastTrack)
                 _trackList.value += response.tracks
@@ -43,20 +56,16 @@ class TrackListViewModel @Inject constructor() : ViewModel() {
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             } finally {
-                _isFetching.value = false
-                _isLoading.value = false
+                _isPolling.value = false
             }
-        }
-    }
-
-    fun loadMoreTracks() {
-        if (lastTrack != null) {
-            fetchTracks() // Fetch the next set of tracks using the stored lastTrack
         }
     }
 
     fun resetLastTrack() {
         lastTrack = null
+    }
+
+    fun resetTracks() {
         _trackList.value = emptyList()
     }
 }

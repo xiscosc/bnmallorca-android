@@ -1,6 +1,7 @@
 package com.apploading.bnmallorca.ui.screens
 
 import TrackListScreen
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
+import androidx.navigation.NavController
 import com.apploading.bnmallorca.R
 import com.apploading.bnmallorca.ui.components.AlbumArt
 import com.apploading.bnmallorca.ui.components.PlayPauseWithListIcon
@@ -23,13 +25,17 @@ import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.guava.await
 
 @Composable
-fun HomeScreen(mediaControllerFuture: ListenableFuture<MediaController>) {
+fun HomeScreen(mediaControllerFuture: ListenableFuture<MediaController>, navController: NavController) {
 
     var mediaController by remember { mutableStateOf<MediaController?>(null) }
     var showPlatList by remember { mutableStateOf(false) }
 
     LaunchedEffect(mediaControllerFuture) {
         mediaController = mediaControllerFuture.await()
+    }
+
+    BackHandler(enabled = showPlatList) {
+        showPlatList = false
     }
 
     Box(
@@ -64,7 +70,9 @@ fun HomeScreen(mediaControllerFuture: ListenableFuture<MediaController>) {
                 verticalArrangement = Arrangement.Center // Center content vertically
             ) {
                 if (showPlatList) {
-                    TrackListScreen()
+                    TrackListScreen(onBannerClick = { navController.navigate("services") {
+                        popUpTo("home") { inclusive = false }
+                    }})
                 } else {
                     AlbumArt()
                 }
@@ -73,6 +81,7 @@ fun HomeScreen(mediaControllerFuture: ListenableFuture<MediaController>) {
 
 
             PlayPauseWithListIcon(
+                showPlatList,
                 onPlayPauseClick = {
                 mediaController?.let { controller ->
                     if (controller.isPlaying) controller.pause() else controller.play()

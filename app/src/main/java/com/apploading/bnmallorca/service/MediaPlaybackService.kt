@@ -27,10 +27,9 @@ import androidx.media3.session.MediaStyleNotificationHelper
 import com.apploading.bnmallorca.MainActivity
 import com.apploading.bnmallorca.R
 import com.apploading.bnmallorca.bncore.PushManager
+import com.apploading.bnmallorca.bncore.RemoteSettingsManager
 import com.apploading.bnmallorca.bncore.TrackManager
 import com.google.common.collect.ImmutableList
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.remoteconfig.ktx.remoteConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -103,7 +102,7 @@ class MediaPlaybackService : MediaSessionService() {
         val forwardingPlayer = object : ForwardingPlayer(player) {
             override fun play() {
                 val track = TrackManager.getTrackFromSharedPreferences(this@MediaPlaybackService)
-                val uri = Uri.parse(Firebase.remoteConfig.getString("streaming_url"))
+                val uri = Uri.parse(RemoteSettingsManager.getSettings().streamingUrl)
                 val current = MediaItem.fromUri(uri)
                 val metaCopy = current.mediaMetadata
                     .buildUpon()
