@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.apploading.bnmallorca.R
 import com.apploading.bnmallorca.ui.components.AlbumArt
 import com.apploading.bnmallorca.ui.components.PlayPauseWithListIcon
+import com.apploading.bnmallorca.ui.helpers.screenSize
 import com.apploading.bnmallorca.ui.navigation.BottomNavItem
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.guava.await
@@ -60,8 +61,8 @@ fun HomeScreen(
                 painter = painterResource(id = R.drawable.bn_logo),
                 contentDescription = "BN Logo",
                 modifier = Modifier
-                    .width(900.dp)
-                    .height(75.dp)
+                    .width(screenSize(900.dp))
+                    .height(screenSize(75.dp))
                     .padding(top = 15.dp, bottom = 10.dp)
             )
 

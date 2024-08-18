@@ -108,9 +108,11 @@ fun ShowItem(show: Show) {
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
-            text = "${show.artist} • ${show.time}",
+            text = "${show.time} • ${show.artist}",
             color = Color.Gray,
-            fontSize = 14.sp
+            fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(

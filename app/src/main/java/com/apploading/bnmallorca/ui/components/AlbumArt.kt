@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +24,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.apploading.bnmallorca.R
+import com.apploading.bnmallorca.ui.helpers.screenSize
+import com.apploading.bnmallorca.ui.helpers.textSize
 import com.apploading.bnmallorca.views.TrackViewModel
 
 @Composable
@@ -32,7 +33,7 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
     val trackInfo by trackViewModel.trackInfoFlow.collectAsState()
 
     // Album Art Placeholder and Track Info in the Middle
-    val albumArtSize = 350.dp
+    val albumArtSize = screenSize(350.dp)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(vertical = 5.dp)
@@ -62,7 +63,7 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
         ) {
             Text(
                 text = trackInfo.name, // Observed track name
-                fontSize = 22.sp,
+                fontSize = textSize(22.sp),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.Start),
@@ -71,7 +72,7 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
             )
             Text(
                 text = trackInfo.artist, // Observed artist name
-                fontSize = 18.sp,
+                fontSize = textSize(18.sp),
                 color = Color.White,
                 maxLines = 1, // Limit to one line
                 overflow = TextOverflow.Ellipsis,

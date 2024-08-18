@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.apploading.bnmallorca.R
+import com.apploading.bnmallorca.ui.helpers.screenSize
 import com.apploading.bnmallorca.views.TrackViewModel
 
 @Composable
@@ -42,7 +43,7 @@ fun PlayPauseWithListIcon(
             painter = painterResource(id = icon),
             contentDescription = "Play/Pause Button",
             modifier = Modifier
-                .size(125.dp) // Size adjusted for prominence
+                .size(screenSize(125.dp)) // Size adjusted for prominence
                 .clickable {
                     onPlayPauseClick()
                 }
@@ -54,9 +55,9 @@ fun PlayPauseWithListIcon(
             contentDescription = "Playlist",
             tint = if (showPlayList) Color.DarkGray else Color.White,
             modifier = Modifier
-                .size(40.dp)
-                .offset(x = (100).dp) // Space between the list icon and the play/pause button
-             .clickable { onListClick() }
+                .size(screenSize(40.dp))
+                .offset(x = screenSize((100).dp)) // Space between the list icon and the play/pause button
+                .clickable { onListClick() }
         )
     }
 
