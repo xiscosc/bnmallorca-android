@@ -81,10 +81,10 @@ class MainActivity : ComponentActivity() {
 
             Log.d("LEGACY_PUSH", "FCM registration already stored")
         }
-
         // Update track for the first time
         lifecycleScope.launch {
             trackManager.updateLastTrackFromApi()
+
         }
     }
 }
