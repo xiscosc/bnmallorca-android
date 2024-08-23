@@ -21,16 +21,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.apploading.bnmallorca.R
 import com.apploading.bnmallorca.ui.helpers.screenSize
-import com.apploading.bnmallorca.views.TrackViewModel
+import com.apploading.bnmallorca.views.PlayingViewModel
 
 @Composable
 fun PlayPauseWithListIcon(
     showPlayList: Boolean,
     onPlayPauseClick: () -> Unit,
     onListClick: () -> Unit,
-    trackViewModel: TrackViewModel = hiltViewModel()
+    playingViewModel: PlayingViewModel = hiltViewModel()
 ) {
-    val trackInfo by trackViewModel.trackInfoFlow.collectAsState()
+    val playingStatus by playingViewModel.playingStatusFlow.collectAsState()
 
     Box(
         modifier = Modifier
@@ -38,7 +38,7 @@ fun PlayPauseWithListIcon(
             .padding(bottom = 40.dp),
         contentAlignment = Alignment.Center
     ) {
-        val icon = if (trackInfo.playing) R.drawable.pause_button else R.drawable.play_button
+        val icon = if (playingStatus) R.drawable.pause_button else R.drawable.play_button
         Image(
             painter = painterResource(id = icon),
             contentDescription = "Play/Pause Button",

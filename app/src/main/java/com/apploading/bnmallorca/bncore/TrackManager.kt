@@ -4,19 +4,78 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import javax.inject.Inject
+import javax.inject.Named
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+class TrackManager @Inject constructor(@Named("trackSharedPreferences") private val trackPreferences: SharedPreferences) {
+    private val preferenceListeners = mutableMapOf<String, SharedPreferences.OnSharedPreferenceChangeListener>()
 
-class TrackManager {
+    fun storeTrackFromPushNotification(notification: String) {
+        val track = buildTrackFromPushNotification(notification)
+        storeTrack(track, false)
+    }
+
+    suspend fun updateLastTrackFromApi() {
+        val api = BnApi.build()
+        val track = try {
+            val tracks = api.getLastTrack().tracks
+            if (tracks.isEmpty()) defaultTrack else tracks[0]
+        } catch (e: Exception) {
+            defaultTrack
+        }
+
+        storeTrack(track, true)
+    }
+
+    fun getCurrentTrack(): Track {
+        val gson = Gson()
+        val trackJson = trackPreferences.getString("track", "") ?: ""
+        if (trackJson.isEmpty()) return defaultTrack
+        return gson.fromJson(trackJson, Track::class.java)
+    }
+
+    fun registerOnTrackChangeListener(key: String, listener: () -> Unit) {
+        unregisterOnTrackChangeListener(key)
+        val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+            listener()
+        }
+        preferenceListeners[key] = preferenceListener
+        trackPreferences.registerOnSharedPreferenceChangeListener(preferenceListener)
+    }
+
+    fun unregisterOnTrackChangeListener(key: String) {
+        val preferenceListener = preferenceListeners[key]
+        if (preferenceListener != null) {
+            trackPreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener)
+            preferenceListeners.remove(key)
+        }
+    }
+
+    private fun storeTrack(
+        track: Track,
+        override: Boolean = false
+    ) {
+        if (!override) {
+            val currentTrack = getCurrentTrack()
+            if (track.timestamp.toInt() <= currentTrack.timestamp.toInt()) return
+        }
+
+        val gson = Gson()
+        val trackJson = gson.toJson(track)
+        trackPreferences.edit().putString("track", trackJson).apply()
+    }
 
     companion object {
         private const val TRACK_PREFERENCES = "track_preferences"
-        private const val NOTIFICATION_PREFERENCES = "track_notification_preferences"
-        const val TRACK_ARTIST_FIELD = "track_artist"
-        const val TRACK_NAME_FIELD = "track_name"
-        const val TRACK_ALBUM_ART_URL_FIELD = "track_album_art_url"
-        const val TRACK_PLAYING_STATUS_FIELD = "track_playing_status"
+        private val defaultTrack = Track(
+            id = "0",
+            name = "BN Mallorca",
+            artist = "Radio",
+            timestamp = 0,
+            albumArt = listOf()
+        )
 
         fun getAlbumArtUrl(track: Track, highestQuality: Boolean = true): String? {
             return getAlbumArtUrl(track.albumArt, highestQuality)
@@ -43,7 +102,23 @@ class TrackManager {
             return duration.toInt(unit)
         }
 
-        fun buildTrackFromNotification(notification: String): Track {
+        fun getSharedPreferencesForTrack(context: Context): SharedPreferences {
+            return context.getSharedPreferences(TRACK_PREFERENCES, Context.MODE_PRIVATE)
+        }
+
+        fun filterTrackString(field: String?): String {
+            if (field.isNullOrEmpty()) {
+                return "BN Mallorca"
+            }
+
+            return if (field.lowercase().trim() in listOf(
+                    "desconocido",
+                    "unknown"
+                )
+            ) "BN Mallorca" else field
+        }
+
+        private fun buildTrackFromPushNotification(notification: String): Track {
             val gson = Gson()
             val type = object : TypeToken<HashMap<String, String>>() {}.type
             val map = gson.fromJson<HashMap<String, String>>(notification, type)
@@ -51,102 +126,11 @@ class TrackManager {
             val array = gson.fromJson<Array<AlbumArt>>(map["albumArt"], albumType)
             return Track(
                 id = map["id"] ?: "",
-                name = map["name"] ?: "",
-                artist = map["artist"] ?: "",
+                name = filterTrackString(map["name"]),
+                artist = filterTrackString(map["artist"]),
                 timestamp = map["timestamp"]?.toInt() ?: 0,
                 albumArt = array.toList()
             )
         }
-
-        suspend fun updateLastTrackFromApi(context: Context) {
-            val api = BnApi.build()
-            val defaultTrack = Track(
-                id = "0",
-                name = "Bn Mallorca Radio",
-                artist = "Bn Mallorca Radio",
-                timestamp = 0,
-                albumArt = listOf()
-            )
-            val track = try {
-                val tracks = api.getLastTrack().tracks
-                if (tracks.isEmpty()) defaultTrack else tracks[0]
-            } catch (e: Exception) {
-                defaultTrack
-            }
-
-            storeTrackInSharedPreferences(track, context, true)
-        }
-
-        fun storePlayingStatus(status: Boolean, context: Context) {
-            val trackSharedPreferences = getSharedPreferencesForTrack(context)
-            trackSharedPreferences.edit().putBoolean(TRACK_PLAYING_STATUS_FIELD, status).apply()
-        }
-
-        fun storeTrackInSharedPreferences(
-            track: Track,
-            context: Context,
-            override: Boolean = false
-        ) {
-            val trackPreferences = getSharedPreferencesForTrack(context)
-            val notificationPreferences = getSharedPreferencesForNotification(context)
-
-            if (!override) {
-                val currentTimestamp = trackPreferences.getInt("track_timestamp", 0)
-                if (track.timestamp.toInt() <= currentTimestamp) return
-            }
-
-            trackPreferences.edit().putString(TRACK_ARTIST_FIELD, track.artist).apply()
-            trackPreferences.edit().putString(TRACK_NAME_FIELD, track.name).apply()
-            trackPreferences.edit()
-                .putString(TRACK_ALBUM_ART_URL_FIELD, getAlbumArtUrl(track) ?: "").apply()
-            trackPreferences.edit().putInt("track_timestamp", track.timestamp.toInt()).apply()
-
-            val gson = Gson()
-            val trackJson = gson.toJson(track)
-            notificationPreferences.edit().putString("track", trackJson).apply()
-        }
-
-        fun getSharedPreferencesForTrack(context: Context): SharedPreferences {
-            return context.getSharedPreferences(TRACK_PREFERENCES, Context.MODE_PRIVATE)
-        }
-
-        fun getSharedPreferencesForNotification(context: Context): SharedPreferences {
-            return context.getSharedPreferences(NOTIFICATION_PREFERENCES, Context.MODE_PRIVATE)
-        }
-
-        fun getTrackFromNotificationSharedPreferences(context: Context): Track? {
-            val sharedPreferences = getSharedPreferencesForNotification(context)
-            val gson = Gson()
-            val trackJson = sharedPreferences.getString("track", "") ?: ""
-            if (trackJson.isEmpty()) return null
-            return gson.fromJson(trackJson, Track::class.java)
-        }
-
-        fun getTrackFromSharedPreferences(context: Context): Track? {
-            val sharedPreferences = getSharedPreferencesForTrack(context)
-            val artist = sharedPreferences.getString(TRACK_ARTIST_FIELD, "") ?: return null
-            val name = sharedPreferences.getString(TRACK_NAME_FIELD, "") ?: return null
-            val albumArtUrl = sharedPreferences.getString(TRACK_ALBUM_ART_URL_FIELD, "") ?: ""
-            val albumArtList = if (albumArtUrl.isEmpty()) {
-                listOf()
-            } else {
-                listOf(AlbumArt(downloadUrl = albumArtUrl, size = "1x1"))
-            }
-
-            return Track(
-                id = "",
-                name = name,
-                artist = artist,
-                timestamp = 0,
-                albumArt = albumArtList
-            )
-        }
-
-        fun filterTrackString(field: String) =
-            if (field.lowercase().trim() in listOf(
-                    "desconocido",
-                    "unknown"
-                )
-            ) "BN Mallorca" else field
     }
 }

@@ -87,7 +87,7 @@ fun HomeScreen(
                 showPlatList,
                 onPlayPauseClick = {
                     mediaController?.let { controller ->
-                        if (controller.isPlaying) controller.pause() else controller.play()
+                        if (controller.isPlaying) controller.stop() else controller.play()
                     }
                 }, onListClick = { showPlatList = !showPlatList })
         }

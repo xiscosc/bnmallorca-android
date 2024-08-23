@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -15,6 +14,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -26,17 +27,31 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.MediaStyleNotificationHelper
 import com.apploading.bnmallorca.MainActivity
 import com.apploading.bnmallorca.R
+import com.apploading.bnmallorca.bncore.PlayManager
 import com.apploading.bnmallorca.bncore.PushManager
 import com.apploading.bnmallorca.bncore.RemoteSettingsManager
 import com.apploading.bnmallorca.bncore.TrackManager
 import com.google.common.collect.ImmutableList
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MediaPlaybackService : MediaSessionService() {
+@AndroidEntryPoint
+class MediaPlaybackService: MediaSessionService() {
+    @Inject
+    lateinit var pushManager: PushManager
+
+    @Inject
+    lateinit var trackManager: TrackManager
+
+    @Inject
+    lateinit var playManager: PlayManager
+
     private val job = SupervisorJob()
+    private val sharedPreferencesListenerKey = "mediaPlayer"
     private val scope = CoroutineScope(Dispatchers.IO + job)
     private var mediaSession: MediaSession? = null
     private val defaultAlbumArt =
@@ -53,10 +68,10 @@ class MediaPlaybackService : MediaSessionService() {
         }
     }
 
-    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-        val track = TrackManager.getTrackFromNotificationSharedPreferences(this)
+    private fun updateMediaNotification() {
+        val track = trackManager.getCurrentTrack()
         Log.d(TAG, "New track received: $track")
-        if (track !== null && mediaSession?.player?.isPlaying == true) {
+        if (mediaSession?.player?.isPlaying == true) {
             Log.d(TAG, "Updating notification...")
             val media = mediaSession!!.player.currentMediaItem!!
             val metaCopy = media.mediaMetadata
@@ -94,21 +109,21 @@ class MediaPlaybackService : MediaSessionService() {
             registerReceiver(pauseReceiver, filter, RECEIVER_NOT_EXPORTED)
         }
 
-        TrackManager.storePlayingStatus(false, this)
-        val sharedPreferences = TrackManager.getSharedPreferencesForNotification(this)
-        sharedPreferences.registerOnSharedPreferenceChangeListener(preferenceListener)
+        trackManager.registerOnTrackChangeListener(sharedPreferencesListenerKey) { updateMediaNotification() }
 
-        val player = ExoPlayer.Builder(this).build()
+        val audioAttributes = AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build()
+        val player = ExoPlayer.Builder(this).setAudioAttributes(audioAttributes, true).build()
         val forwardingPlayer = object : ForwardingPlayer(player) {
             override fun play() {
-                val track = TrackManager.getTrackFromSharedPreferences(this@MediaPlaybackService)
+                val track = trackManager.getCurrentTrack()
                 val uri = Uri.parse(RemoteSettingsManager.getSettings().streamingUrl)
                 val current = MediaItem.fromUri(uri)
                 val metaCopy = current.mediaMetadata
                     .buildUpon()
-                    .setArtist(track?.artist ?: "Bn Mallorca Radio")
-                    .setTitle(track?.name ?: "Independencia Musical")
-                    .setArtworkUri(Uri.parse(track?.let { TrackManager.getAlbumArtUrl(it) }
+                    .setArtist(track.artist)
+                    .setTitle(track.name)
+                    .setArtworkUri(Uri.parse(track.let { TrackManager.getAlbumArtUrl(it) }
                         ?: defaultAlbumArt))
                     .build()
 
@@ -119,10 +134,11 @@ class MediaPlaybackService : MediaSessionService() {
                 this.setMediaItem(itemCopy)
                 this.prepare()
                 super.play()
-                TrackManager.storePlayingStatus(true, this@MediaPlaybackService)
+                playManager.storePlayingStatus(true)
                 scope.launch {
                     try {
-                        PushManager.registerDevice(this@MediaPlaybackService, null)
+                        pushManager.registerDevice( null)
+                        trackManager.updateLastTrackFromApi()
                     } catch (e: Exception) {
                         return@launch
                     }
@@ -130,11 +146,11 @@ class MediaPlaybackService : MediaSessionService() {
             }
 
             override fun pause() {
-                super.stop()
-                TrackManager.storePlayingStatus(false, this@MediaPlaybackService)
+                super.pause()
+                playManager.storePlayingStatus(false)
                 scope.launch {
                     try {
-                        PushManager.unregisterDevice(this@MediaPlaybackService)
+                        pushManager.unregisterDevice()
                     } catch (e: Exception) {
                         return@launch
                     }
@@ -143,10 +159,10 @@ class MediaPlaybackService : MediaSessionService() {
 
             override fun stop() {
                 super.stop()
-                TrackManager.storePlayingStatus(false, this@MediaPlaybackService)
+                playManager.storePlayingStatus(false)
                 scope.launch {
                     try {
-                        PushManager.unregisterDevice(this@MediaPlaybackService)
+                        pushManager.unregisterDevice()
                     } catch (e: Exception) {
                         return@launch
                     }
@@ -199,9 +215,9 @@ class MediaPlaybackService : MediaSessionService() {
 
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-            val track = TrackManager.getTrackFromSharedPreferences(this@MediaPlaybackService)
-            nBuilder.setSubText(track?.artist ?: "Bn Mallorca Radio")
-            nBuilder.setContentTitle(track?.name ?: "Independencia Musical")
+            val track = trackManager.getCurrentTrack()
+            nBuilder.setSubText(track.artist)
+            nBuilder.setContentTitle(track.name)
             nBuilder.setLargeIcon(
                 BitmapFactory.decodeResource(
                     resources,
@@ -237,8 +253,8 @@ class MediaPlaybackService : MediaSessionService() {
             mediaSession = null
         }
 
-        val sharedPreferences = TrackManager.getSharedPreferencesForNotification(this)
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener)
+        trackManager.unregisterOnTrackChangeListener(sharedPreferencesListenerKey)
+        playManager.storePlayingStatus(false)
         unregisterReceiver(pauseReceiver)
         super.onDestroy()
     }
