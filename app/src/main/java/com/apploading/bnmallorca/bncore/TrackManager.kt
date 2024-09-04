@@ -2,8 +2,14 @@ package com.apploading.bnmallorca.bncore
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 import javax.inject.Inject
 import javax.inject.Named
 import kotlin.time.DurationUnit
@@ -92,6 +98,24 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
 
             if (sizes.isEmpty()) return null
             return urlMap[if (highestQuality) sizes.last() else sizes.first()]
+        }
+
+        suspend fun getAlbumArtBitmap(track: Track): Bitmap? {
+            val imageUrl = getAlbumArtUrl(track)
+            if (imageUrl.isNullOrEmpty()) return null
+            return withContext(Dispatchers.IO) {
+                try {
+                    val url = URL(imageUrl)
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.doInput = true
+                    connection.connect()
+                    val inputStream = connection.inputStream
+                    BitmapFactory.decodeStream(inputStream)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
         }
 
         fun getTimeAgo(track: Track, unit: DurationUnit): Number {

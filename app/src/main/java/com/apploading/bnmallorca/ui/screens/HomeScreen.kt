@@ -6,7 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,7 +23,7 @@ import com.apploading.bnmallorca.ui.components.PlayPauseWithListIcon
 import com.apploading.bnmallorca.ui.helpers.screenSize
 import com.apploading.bnmallorca.ui.navigation.BottomNavItem
 import com.google.common.util.concurrent.ListenableFuture
-import kotlinx.coroutines.guava.await
+import com.google.common.util.concurrent.MoreExecutors
 
 @Composable
 fun HomeScreen(
@@ -32,15 +31,10 @@ fun HomeScreen(
     navController: NavController
 ) {
 
-    var mediaController by remember { mutableStateOf<MediaController?>(null) }
-    var showPlatList by remember { mutableStateOf(false) }
+    var playListShown by remember { mutableStateOf(false) }
 
-    LaunchedEffect(mediaControllerFuture) {
-        mediaController = mediaControllerFuture.await()
-    }
-
-    BackHandler(enabled = showPlatList) {
-        showPlatList = false
+    BackHandler(enabled = playListShown) {
+        playListShown = false
     }
 
     Box(
@@ -51,14 +45,15 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 15.dp),
+                .padding(top = 10.dp)
+                .padding(horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
-            // BN Logo at the Top
+
             Image(
-                painter = painterResource(id = R.drawable.bn_logo),
+                painter = painterResource(id = R.drawable.bn_logo_fm_2_g),
                 contentDescription = "BN Logo",
                 modifier = Modifier
                     .width(screenSize(900.dp))
@@ -74,7 +69,7 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center // Center content vertically
             ) {
-                if (showPlatList) {
+                if (playListShown) {
                     TrackListScreen(onBannerClick = {
                         navController.navigate(BottomNavItem.Services.route)
                     })
@@ -84,12 +79,13 @@ fun HomeScreen(
             }
 
             PlayPauseWithListIcon(
-                showPlatList,
+                playListShown,
                 onPlayPauseClick = {
-                    mediaController?.let { controller ->
+                    mediaControllerFuture.addListener({
+                        val controller = mediaControllerFuture.get()
                         if (controller.isPlaying) controller.stop() else controller.play()
-                    }
-                }, onListClick = { showPlatList = !showPlatList })
+                    }, MoreExecutors.directExecutor())
+                }, onListClick = { playListShown = !playListShown }, showPlayList = true)
         }
     }
 }

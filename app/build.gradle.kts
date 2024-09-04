@@ -15,8 +15,8 @@ android {
         applicationId = "com.apploading.bnmallorca"
         minSdk = 29
         targetSdk = 35
-        versionCode = 24082301
-        versionName = "2.1.0"
+        versionCode = 24090403
+        versionName = "2.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -62,8 +62,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.media3:media3-exoplayer:1.4.0")
-    implementation("androidx.media3:media3-session:1.4.0")
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-session:1.4.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
@@ -72,6 +72,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.24.13-rc")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.8")

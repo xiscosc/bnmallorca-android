@@ -25,9 +25,10 @@ import com.apploading.bnmallorca.views.PlayingViewModel
 
 @Composable
 fun PlayPauseWithListIcon(
-    showPlayList: Boolean,
+    playListShown: Boolean,
     onPlayPauseClick: () -> Unit,
     onListClick: () -> Unit,
+    showPlayList: Boolean = true,
     playingViewModel: PlayingViewModel = hiltViewModel()
 ) {
     val playingStatus by playingViewModel.playingStatusFlow.collectAsState()
@@ -49,16 +50,19 @@ fun PlayPauseWithListIcon(
                 }
         )
 
-        // List Icon
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.FormatListBulleted,
-            contentDescription = "Playlist",
-            tint = if (showPlayList) Color.DarkGray else Color.White,
-            modifier = Modifier
-                .size(screenSize(40.dp))
-                .offset(x = screenSize((100).dp)) // Space between the list icon and the play/pause button
-                .clickable { onListClick() }
-        )
+        if (showPlayList) {
+            // List Icon
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.FormatListBulleted,
+                contentDescription = "Playlist",
+                tint = if (playListShown) Color.DarkGray else Color.White,
+                modifier = Modifier
+                    .size(screenSize(40.dp))
+                    .offset(x = screenSize((100).dp)) // Space between the list icon and the play/pause button
+                    .clickable { onListClick() }
+            )
+        }
+
     }
 
 }

@@ -1,18 +1,15 @@
 package com.apploading.bnmallorca
 
-import com.apploading.bnmallorca.ui.navigation.BottomNavigationBar
-import com.apploading.bnmallorca.ui.navigation.NavigationGraph
 import android.content.ComponentName
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.compose.material3.Surface
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,10 +22,17 @@ import com.apploading.bnmallorca.bncore.PushManager
 import com.apploading.bnmallorca.bncore.RemoteSettingsManager
 import com.apploading.bnmallorca.bncore.TrackManager
 import com.apploading.bnmallorca.service.MediaPlaybackService
+import com.apploading.bnmallorca.ui.navigation.BottomNavigationBar
+import com.apploading.bnmallorca.ui.navigation.NavigationGraph
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,22 +47,38 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var playManager: PlayManager
 
-    private lateinit var mediaController: ListenableFuture<MediaController>
+    private lateinit var appUpdateManager: AppUpdateManager
+    private val updateType = AppUpdateType.IMMEDIATE
+
+    private lateinit var mediaControllerFuture: ListenableFuture<MediaController>
+
+    // Register the activity result launcher for handling the update flow
+    private val updateRequestLauncher =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode != RESULT_OK) {
+                Log.d("InAppUpdate", "Update flow failed or was canceled by the user.")
+            } else {
+                Log.d("InAppUpdate", "Update flow completed successfully.")
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        RemoteSettingsManager.setupSettings()
+        appUpdateManager = AppUpdateManagerFactory.create(this)
 
+        // Check for updates on app launch
+        checkForAppUpdate()
+        RemoteSettingsManager.setupSettings()
         val sessionToken = SessionToken(this, ComponentName(this, MediaPlaybackService::class.java))
-        mediaController = MediaController.Builder(this, sessionToken).buildAsync()
-        lifecycleScope.launch {
-            playManager.storePlayingStatus(mediaController.await().isPlaying)
-        }
+        mediaControllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        mediaControllerFuture.addListener({
+            playManager.storePlayingStatus(mediaControllerFuture.get().isPlaying)
+        }, MoreExecutors.directExecutor())
 
         setContent {
             AppTheme {
                 Surface(color = Color.Black) {
-                    MainScreen(mediaController)
+                    MainScreen(mediaControllerFuture, true)
                 }
             }
         }
@@ -81,12 +101,49 @@ class MainActivity : ComponentActivity() {
 
             Log.d("LEGACY_PUSH", "FCM registration already stored")
         }
+
         // Update track for the first time
         lifecycleScope.launch {
             trackManager.updateLastTrackFromApi()
-
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Check if the update was in progress and resume it if necessary
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                // Resume the update
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    updateRequestLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                )
+            }
+        }
+    }
+
+    private fun checkForAppUpdate() {
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                appUpdateInfo.isUpdateTypeAllowed(updateType)
+            ) {
+
+                // Start the update using the new method
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    updateRequestLauncher,
+                    AppUpdateOptions.newBuilder(updateType).build()
+                )
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        MediaController.releaseFuture(mediaControllerFuture)
+        super.onDestroy()
+    }
+
 }
 
 @Composable
@@ -100,11 +157,18 @@ fun AppTheme(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun MainScreen(mediaControllerFuture: ListenableFuture<MediaController>) {
+fun MainScreen(
+    mediaControllerFuture: ListenableFuture<MediaController>,
+    showBottomBar: Boolean = true
+) {
     val navController = rememberNavController()
 
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController) },
+        bottomBar = {
+            if (showBottomBar) {
+                BottomNavigationBar(navController)
+            }
+        },
         modifier = Modifier.background(Color.Black)
     ) { innerPadding ->
         Box(

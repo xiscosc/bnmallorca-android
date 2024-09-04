@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MediaPlaybackService: MediaSessionService() {
+class MediaPlaybackService : MediaSessionService() {
     @Inject
     lateinit var pushManager: PushManager
 
@@ -58,11 +58,15 @@ class MediaPlaybackService: MediaSessionService() {
         "android.resource://com.apploading.bnmallorca/drawable/album_placeholder"
     private lateinit var nBuilder: NotificationCompat.Builder
     private lateinit var notificationManager: NotificationManager
-    private val pauseReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    private val playPauseReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 ACTION_PAUSE -> {
                     mediaSession?.player?.pause()
+                }
+
+                ACTION_PLAY -> {
+                    mediaSession?.player?.play()
                 }
             }
         }
@@ -72,7 +76,7 @@ class MediaPlaybackService: MediaSessionService() {
         val track = trackManager.getCurrentTrack()
         Log.d(TAG, "New track received: $track")
         if (mediaSession?.player?.isPlaying == true) {
-            Log.d(TAG, "Updating notification...")
+            Log.d(TAG, "Updating media player notification...")
             val media = mediaSession!!.player.currentMediaItem!!
             val metaCopy = media.mediaMetadata
                 .buildUpon()
@@ -101,12 +105,13 @@ class MediaPlaybackService: MediaSessionService() {
 
         val filter = IntentFilter().apply {
             addAction(ACTION_PAUSE)
+            addAction(ACTION_PLAY)
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(pauseReceiver, filter)
+            registerReceiver(playPauseReceiver, filter)
         } else {
-            registerReceiver(pauseReceiver, filter, RECEIVER_NOT_EXPORTED)
+            registerReceiver(playPauseReceiver, filter, RECEIVER_NOT_EXPORTED)
         }
 
         trackManager.registerOnTrackChangeListener(sharedPreferencesListenerKey) { updateMediaNotification() }
@@ -137,7 +142,7 @@ class MediaPlaybackService: MediaSessionService() {
                 playManager.storePlayingStatus(true)
                 scope.launch {
                     try {
-                        pushManager.registerDevice( null)
+                        pushManager.registerDevice(null)
                         trackManager.updateLastTrackFromApi()
                     } catch (e: Exception) {
                         return@launch
@@ -211,33 +216,55 @@ class MediaPlaybackService: MediaSessionService() {
         val style = MediaStyleNotificationHelper.MediaStyle(session)
         nBuilder = NotificationCompat.Builder(this, "bnmallorca")
             .setContentIntent(openAppPendingIntent)
-            .setSmallIcon(androidx.media3.session.R.drawable.media3_notification_small_icon)
-
+            .setSmallIcon(R.drawable.radio_icon)
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
             val track = trackManager.getCurrentTrack()
             nBuilder.setSubText(track.artist)
             nBuilder.setContentTitle(track.name)
-            nBuilder.setLargeIcon(
-                BitmapFactory.decodeResource(
-                    resources,
-                    R.drawable.album_placeholder
-                )
-            )
+            CoroutineScope(Dispatchers.Main).launch {
+                val albumArtBitmap = TrackManager.getAlbumArtBitmap(track)
+                if (albumArtBitmap != null) {
+                    nBuilder.setLargeIcon(albumArtBitmap)
+                } else {
+                    nBuilder.setLargeIcon(
+                        BitmapFactory.decodeResource(resources, R.drawable.album_placeholder)
+                    )
+                }
+                notificationManager.notify(1, nBuilder.build())
+            }
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            val isPlaying = session.player.isPlaying
             val pausePendingIntent: PendingIntent = PendingIntent.getBroadcast(
                 this,
                 REQUEST_CODE_PAUSE,
                 Intent(ACTION_PAUSE),
                 PendingIntent.FLAG_IMMUTABLE
             )
-            nBuilder.addAction(
-                androidx.media3.session.R.drawable.media3_icon_pause,
-                "Pause",
-                pausePendingIntent
+
+            val playPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+                this,
+                REQUEST_CODE_PLAY,
+                Intent(ACTION_PLAY),
+                PendingIntent.FLAG_IMMUTABLE
             )
+
+            if (isPlaying) {
+                nBuilder.addAction(
+                    androidx.media3.session.R.drawable.media3_icon_pause,
+                    "Pause",
+                    pausePendingIntent
+                )
+            } else {
+                nBuilder.addAction(
+                    androidx.media3.session.R.drawable.media3_icon_play,
+                    "Play",
+                    playPendingIntent
+                )
+            }
+
             nBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             style.setShowActionsInCompactView(0)
         }
@@ -254,13 +281,16 @@ class MediaPlaybackService: MediaSessionService() {
         }
 
         trackManager.unregisterOnTrackChangeListener(sharedPreferencesListenerKey)
+        unregisterReceiver(playPauseReceiver)
         playManager.storePlayingStatus(false)
-        unregisterReceiver(pauseReceiver)
         super.onDestroy()
     }
 
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        mediaSession?.run {
+            player.pause()
+        }
         stopSelf()
     }
 
@@ -271,7 +301,9 @@ class MediaPlaybackService: MediaSessionService() {
 
     companion object {
         const val ACTION_PAUSE = "action.PAUSE"
+        const val ACTION_PLAY = "action.PLAY"
         const val REQUEST_CODE_PAUSE = 0
+        const val REQUEST_CODE_PLAY = 1
         const val TAG = "MediaPlaybackService"
     }
 }

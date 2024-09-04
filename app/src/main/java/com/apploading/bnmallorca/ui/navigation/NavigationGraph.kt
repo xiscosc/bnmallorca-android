@@ -9,7 +9,6 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
 import com.apploading.bnmallorca.ui.screens.ContactScreen
 import com.apploading.bnmallorca.ui.screens.ScheduleScreen
 import com.apploading.bnmallorca.ui.screens.ServicesScreen

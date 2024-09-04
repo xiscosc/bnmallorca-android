@@ -1,5 +1,6 @@
 package com.apploading.bnmallorca.ui.screens
 
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.background
@@ -45,6 +46,22 @@ fun ServicesScreen() {
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
                 WebView(context).apply {
+                    // Enable zoom controls and scaling
+                    // Enable JavaScript
+                    settings.javaScriptEnabled = true
+
+                    // Ensure the WebView scales content to fit the screen
+                    settings.useWideViewPort = true
+                    settings.loadWithOverviewMode = true
+
+                    // Adjust layout to fit the content within the screen
+                    settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+
+                    // Force the initial scale to 100% to fit the screen width
+                    setInitialScale(1)
+
+                    // Set the WebView client
+                    webViewClient = WebViewClient()
                     webViewClient = WebViewClient()
                     loadUrl(RemoteSettingsManager.getSettings().servicesUrl)
                 }
