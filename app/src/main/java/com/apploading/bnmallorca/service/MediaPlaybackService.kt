@@ -228,7 +228,7 @@ class MediaPlaybackService : MediaSessionService() {
                     nBuilder.setLargeIcon(albumArtBitmap)
                 } else {
                     nBuilder.setLargeIcon(
-                        BitmapFactory.decodeResource(resources, R.drawable.album_placeholder)
+                        BitmapFactory.decodeResource(resources, R.drawable.new_album_placeholder)
                     )
                 }
                 notificationManager.notify(1, nBuilder.build())

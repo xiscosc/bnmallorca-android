@@ -53,12 +53,11 @@ fun HomeScreen(
 
 
             Image(
-                painter = painterResource(id = R.drawable.bn_logo_fm_2_g),
+                painter = painterResource(id = R.drawable.new_logo_2),
                 contentDescription = "BN Logo",
                 modifier = Modifier
-                    .width(screenSize(900.dp))
-                    .height(screenSize(75.dp))
-                    .padding(top = 15.dp, bottom = 10.dp)
+                    .width(screenSize(350.dp))
+                    .padding(top = 15.dp, bottom = 5.dp)
             )
 
 

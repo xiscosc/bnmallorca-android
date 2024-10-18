@@ -44,9 +44,9 @@ fun ListElement(
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(albumArtUrl?.ifEmpty { R.drawable.album_placeholder })
-                    .placeholder(R.drawable.album_placeholder) // Show this while loading
-                    .error(R.drawable.album_placeholder) // Show this if there's an error
+                    .data(albumArtUrl?.ifEmpty { R.drawable.new_album_placeholder })
+                    .placeholder(R.drawable.new_album_placeholder) // Show this while loading
+                    .error(R.drawable.new_album_placeholder) // Show this if there's an error
                     .crossfade(true)
                     .build(),
                 contentScale = ContentScale.Crop
