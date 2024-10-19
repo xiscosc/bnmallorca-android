@@ -87,6 +87,11 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
             return getAlbumArtUrl(track.albumArt, highestQuality)
         }
 
+        suspend fun getTrackList(lastTrack: Number?): TrackResponse {
+            val api = BnApi.build()
+            return api.getLastTracks(lastTrack = lastTrack)
+        }
+
         fun getAlbumArtUrl(albumArts: List<AlbumArt>, highestQuality: Boolean = true): String? {
             val sizes = sortedSetOf<Int>()
             val urlMap = mutableMapOf<Number, String>()

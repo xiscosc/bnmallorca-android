@@ -2,8 +2,8 @@ package com.apploading.bnmallorca.views
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.apploading.bnmallorca.bncore.BnApi
 import com.apploading.bnmallorca.bncore.Track
+import com.apploading.bnmallorca.bncore.TrackManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -32,8 +32,7 @@ class TrackListViewModel @Inject constructor() : ViewModel() {
             _errorMessage.value = null
             try {
                 _isLoading.value = true
-                val api = BnApi.build()
-                val response = api.getLastTracks(lastTrack = lastTrack)
+                val response = TrackManager.getTrackList(lastTrack = lastTrack)
                 _trackList.value = response.tracks
                 lastTrack = response.lastTrack // Store the lastTrack for subsequent calls
             } catch (e: Exception) {
@@ -49,8 +48,7 @@ class TrackListViewModel @Inject constructor() : ViewModel() {
             _errorMessage.value = null
             try {
                 _isPolling.value = true
-                val api = BnApi.build()
-                val response = api.getLastTracks(lastTrack = lastTrack)
+                val response = TrackManager.getTrackList(lastTrack = lastTrack)
                 _trackList.value += response.tracks
                 lastTrack = response.lastTrack // Store the lastTrack for subsequent calls
             } catch (e: Exception) {
