@@ -55,7 +55,7 @@ class MediaPlaybackService : MediaSessionService() {
     private val scope = CoroutineScope(Dispatchers.IO + job)
     private var mediaSession: MediaSession? = null
     private val defaultAlbumArt =
-        "android.resource://com.apploading.bnmallorca/drawable/album_placeholder"
+        "android.resource://com.apploading.bnmallorca/drawable/new_album_placeholder_300"
     private lateinit var nBuilder: NotificationCompat.Builder
     private lateinit var notificationManager: NotificationManager
     private val playPauseReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -228,7 +228,7 @@ class MediaPlaybackService : MediaSessionService() {
                     nBuilder.setLargeIcon(albumArtBitmap)
                 } else {
                     nBuilder.setLargeIcon(
-                        BitmapFactory.decodeResource(resources, R.drawable.new_album_placeholder)
+                        BitmapFactory.decodeResource(resources, R.drawable.new_album_placeholder_300)
                     )
                 }
                 notificationManager.notify(1, nBuilder.build())

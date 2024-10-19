@@ -42,9 +42,9 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(trackInfo.albumArtUrl.ifEmpty { R.drawable.new_album_placeholder })
-                    .placeholder(R.drawable.new_album_placeholder) // Show this while loading
-                    .error(R.drawable.new_album_placeholder) // Show this if there's an error
+                    .data(trackInfo.albumArtUrl.ifEmpty { R.drawable.new_album_placeholder_600 })
+                    .placeholder(R.drawable.new_album_placeholder_600) // Show this while loading
+                    .error(R.drawable.new_album_placeholder_600) // Show this if there's an error
                     .crossfade(true)
                     .build(),
                 contentScale = ContentScale.Crop

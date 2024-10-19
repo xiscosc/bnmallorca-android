@@ -181,7 +181,7 @@ fun Banner(onBannerClick: () -> Unit) {
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.new_album_placeholder)
+                    .data(R.drawable.new_album_placeholder_300)
                     .crossfade(true)
                     .build(),
                 contentScale = ContentScale.Crop
