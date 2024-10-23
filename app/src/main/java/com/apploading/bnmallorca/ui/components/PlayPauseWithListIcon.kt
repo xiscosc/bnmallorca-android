@@ -44,7 +44,7 @@ fun PlayPauseWithListIcon(
             painter = painterResource(id = icon),
             contentDescription = "Play/Pause Button",
             modifier = Modifier
-                .size(screenSize(125.dp)) // Size adjusted for prominence
+                .size(screenSize(125.dp, 100.dp)) // Size adjusted for prominence
                 .clickable {
                     onPlayPauseClick()
                 }
@@ -57,8 +57,8 @@ fun PlayPauseWithListIcon(
                 contentDescription = "Playlist",
                 tint = if (playListShown) Color.DarkGray else Color.White,
                 modifier = Modifier
-                    .size(screenSize(40.dp))
-                    .offset(x = screenSize((100).dp)) // Space between the list icon and the play/pause button
+                    .size(screenSize(40.dp, 35.dp))
+                    .offset(x = screenSize(100.dp, 80.dp)) // Space between the list icon and the play/pause button
                     .clickable { onListClick() }
             )
         }

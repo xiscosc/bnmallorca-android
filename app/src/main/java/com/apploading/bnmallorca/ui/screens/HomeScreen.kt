@@ -56,7 +56,7 @@ fun HomeScreen(
                 painter = painterResource(id = R.drawable.logo_v2),
                 contentDescription = "BN Logo",
                 modifier = Modifier
-                    .width(screenSize(350.dp))
+                    .width(screenSize(350.dp, 300.dp))
             )
 
 
@@ -83,7 +83,8 @@ fun HomeScreen(
                         val controller = mediaControllerFuture.get()
                         if (controller.isPlaying) controller.stop() else controller.play()
                     }, MoreExecutors.directExecutor())
-                }, onListClick = { playListShown = !playListShown }, showPlayList = true)
+                }, onListClick = { playListShown = !playListShown }, showPlayList = true
+            )
         }
     }
 }

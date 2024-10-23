@@ -54,7 +54,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
         if (isLoading) {
             Loading()
         } else if (errorMessage != null) {
-            Text(text = "Error: $errorMessage", color = Color.Red)
+            Text(text = "No se ha podido cargar la programación, inténtelo más tarde.", color = Color.White)
         } else {
             LazyColumn {
                 items(schedule) { day ->

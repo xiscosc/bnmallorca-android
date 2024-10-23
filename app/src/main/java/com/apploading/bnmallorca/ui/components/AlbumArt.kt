@@ -32,8 +32,7 @@ import com.apploading.bnmallorca.views.TrackViewModel
 fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
     val trackInfo by trackViewModel.trackInfoFlow.collectAsState()
 
-    // Album Art Placeholder and Track Info in the Middle
-    val albumArtSize = screenSize(350.dp)
+    val albumArtSize = screenSize(350.dp, 300.dp)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(vertical = 5.dp)
