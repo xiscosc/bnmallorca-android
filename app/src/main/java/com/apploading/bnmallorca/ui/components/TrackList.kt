@@ -111,7 +111,7 @@ fun TrackListScreen(onBannerClick: () -> Unit, viewModel: TrackListViewModel = h
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 6.dp)
+            .padding(top= 7.dp, bottom = 6.dp)
             .pullRefresh(pullRefreshState)
     ) {
 

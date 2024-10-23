@@ -14,8 +14,9 @@ fun screenSize(baseSize: Dp): Dp {
 
     // Adjust the base size according to the font scale or density
     val scaledSize = when {
-        fontScale > 1.3f -> baseSize * 0.8f // Reduce size if font scale is large
-        densityDpi > 480 -> baseSize * 0.8f // Reduce size if density is very high
+        fontScale > 1.3f -> baseSize * 0.8f
+        densityDpi < 365 -> baseSize * 0.65f
+        densityDpi < 480 -> baseSize * 0.8f
         else -> baseSize
     }
 
