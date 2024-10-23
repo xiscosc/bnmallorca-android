@@ -35,5 +35,9 @@ data class BnMallorcaSettings(
     @SerializedName("instagram_web_url") val instagramWebUrl: String,
     @SerializedName("instagram_app_url") val instagramAppUrl: String,
     @SerializedName("facebook_web_url") val facebookWebUrl: String,
-    @SerializedName("facebook_app_url") val facebookAppUrl: String
+    @SerializedName("facebook_app_url") val facebookAppUrl: String,
+    @SerializedName("mail") val mail: String,
+    @SerializedName("phone") val phone: String,
+    @SerializedName("address_display") val addressDisplay: String,
+    @SerializedName("address_geo_link") val addressGeoLink: String
 )

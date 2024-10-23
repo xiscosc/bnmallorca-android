@@ -23,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apploading.bnmallorca.R
@@ -53,10 +52,10 @@ fun ContactScreen() {
         // Phone Row
         ContactItem(
             icon = Icons.Default.Phone,
-            text = "+34 971 72 51 50",
+            text = RemoteSettingsManager.getSettings().phone,
             contentDescription = "Phone",
             onClick = {
-                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:+34971725150"))
+                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + RemoteSettingsManager.getSettings().phone))
                 context.startActivity(intent)
             }
         )
@@ -64,11 +63,11 @@ fun ContactScreen() {
         // Email Row
         ContactItem(
             icon = Icons.Default.Email,
-            text = "info@bnmallorca.com",
+            text = RemoteSettingsManager.getSettings().mail,
             contentDescription = "Email",
             onClick = {
                 val intent = Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("mailto:info@bnmallorca.com")
+                    data = Uri.parse("mailto:" + RemoteSettingsManager.getSettings().mail)
                     putExtra(Intent.EXTRA_SUBJECT, "Inquiry")
                 }
                 context.startActivity(intent)
@@ -78,12 +77,12 @@ fun ContactScreen() {
         // Address Row
         ContactItem(
             icon = Icons.Default.Map,
-            text = "C/ Posada de Lluc 8\nLocal 3\n07001\nPalma\nBaleares",
+            text = RemoteSettingsManager.getSettings().addressDisplay,
             contentDescription = "Address",
             onClick = {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("geo:0,0?q=C%2F+Posada+de+Lluc+8+%2C+07001%2C+Palma+de+Mallorca%2C+Baleares")
+                    Uri.parse(RemoteSettingsManager.getSettings().addressGeoLink)
                 )
                 context.startActivity(intent)
             }
@@ -105,7 +104,7 @@ fun ContactScreen() {
             horizontalArrangement = Arrangement.Center
         ) {
             SocialMediaIcon(
-                imageResource = R.drawable.instagram_glyph_white_1, // Your Instagram icon resource
+                imageResource = R.drawable.instagram_glyph_white_1,
                 contentDescription = "Instagram",
                 onClick = {
                     val intent = Intent(
@@ -117,7 +116,7 @@ fun ContactScreen() {
             )
             Spacer(modifier = Modifier.width(48.dp))
             SocialMediaIcon(
-                imageResource = R.drawable.facebook_logo_secondary_2, // Your Facebook icon resource
+                imageResource = R.drawable.facebook_logo_secondary_2,
                 contentDescription = "Facebook",
                 onClick = {
                     val intent = Intent(
