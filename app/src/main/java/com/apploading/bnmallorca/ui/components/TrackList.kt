@@ -1,7 +1,7 @@
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +12,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.IosShare
+import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -41,12 +44,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import com.apploading.bnmallorca.R
 import com.apploading.bnmallorca.bncore.RemoteSettingsManager
 import com.apploading.bnmallorca.bncore.Track
@@ -116,7 +118,10 @@ fun TrackListScreen(onBannerClick: () -> Unit, viewModel: TrackListViewModel = h
             if (isLoading && !isRefreshing) {
                 Loading()
             } else if (errorMessage != null) {
-                Text(text = "No se ha podido cargar la lista de canciones, inténtelo de nuevo más tarde.", color = Color.White)
+                Text(
+                    text = "No se ha podido cargar la lista de canciones, inténtelo de nuevo más tarde.",
+                    color = Color.White
+                )
             } else {
                 TrackList(tracks = trackList, listState, onBannerClick)
             }
@@ -169,24 +174,40 @@ fun Banner(onBannerClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(4.dp)
             .clickable {
                 onBannerClick()
             }
-            .clip(RoundedCornerShape(4.dp)),
-        verticalAlignment = Alignment.CenterVertically
+            .clip(RoundedCornerShape(10.dp))
+            .border(1.dp, Color.Red, shape = RoundedCornerShape(10.dp))
+            .background(Color.Transparent),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.banner_servicios)
-                    .crossfade(true)
-                    .build(),
-            ),
-            contentDescription = "Services banner",
+
+        Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .height(74.dp)
-        )
+                .fillMaxWidth()
+                .padding(vertical = 5.dp, horizontal = 13.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = RemoteSettingsManager.getSettings().servicesBannerText ?: "",
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .weight(2f)
+                    .padding(vertical = 2.dp)
+            )
+
+            Icon(
+                painter = painterResource(id = R.drawable.deep_link),
+                contentDescription = "Services",
+                tint = Color.Red,
+                modifier = Modifier.size(45.dp)
+            )
+
+            Spacer(modifier = Modifier.width(13.dp))
+        }
     }
 }
 

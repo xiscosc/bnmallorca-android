@@ -40,5 +40,6 @@ data class BnMallorcaSettings(
     @SerializedName("mail") val mail: String?,
     @SerializedName("phone") val phone: String?,
     @SerializedName("address_display") val addressDisplay: String?,
-    @SerializedName("address_geo_link") val addressGeoLink: String?
+    @SerializedName("address_geo_link") val addressGeoLink: String?,
+    @SerializedName("services_banner_text") val servicesBannerText: String?
 )
