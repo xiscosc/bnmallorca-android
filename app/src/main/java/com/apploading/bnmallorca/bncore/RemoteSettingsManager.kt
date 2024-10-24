@@ -1,5 +1,6 @@
 package com.apploading.bnmallorca.bncore
 
+import android.util.Log
 import com.apploading.bnmallorca.R
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
@@ -36,8 +37,8 @@ data class BnMallorcaSettings(
     @SerializedName("instagram_app_url") val instagramAppUrl: String,
     @SerializedName("facebook_web_url") val facebookWebUrl: String,
     @SerializedName("facebook_app_url") val facebookAppUrl: String,
-    @SerializedName("mail") val mail: String,
-    @SerializedName("phone") val phone: String,
-    @SerializedName("address_display") val addressDisplay: String,
-    @SerializedName("address_geo_link") val addressGeoLink: String
+    @SerializedName("mail") val mail: String?,
+    @SerializedName("phone") val phone: String?,
+    @SerializedName("address_display") val addressDisplay: String?,
+    @SerializedName("address_geo_link") val addressGeoLink: String?
 )

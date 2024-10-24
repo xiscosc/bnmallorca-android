@@ -52,7 +52,7 @@ fun ContactScreen() {
         // Phone Row
         ContactItem(
             icon = Icons.Default.Phone,
-            text = RemoteSettingsManager.getSettings().phone,
+            text = RemoteSettingsManager.getSettings().phone ?: "",
             contentDescription = "Phone",
             onClick = {
                 val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + RemoteSettingsManager.getSettings().phone))
@@ -63,7 +63,7 @@ fun ContactScreen() {
         // Email Row
         ContactItem(
             icon = Icons.Default.Email,
-            text = RemoteSettingsManager.getSettings().mail,
+            text = RemoteSettingsManager.getSettings().mail  ?: "",
             contentDescription = "Email",
             onClick = {
                 val intent = Intent(Intent.ACTION_SENDTO).apply {
@@ -77,7 +77,7 @@ fun ContactScreen() {
         // Address Row
         ContactItem(
             icon = Icons.Default.Map,
-            text = RemoteSettingsManager.getSettings().addressDisplay,
+            text = RemoteSettingsManager.getSettings().addressDisplay  ?: "",
             contentDescription = "Address",
             onClick = {
                 val intent = Intent(

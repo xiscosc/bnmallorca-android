@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -40,9 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -111,7 +108,7 @@ fun TrackListScreen(onBannerClick: () -> Unit, viewModel: TrackListViewModel = h
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top= 7.dp, bottom = 6.dp)
+            .padding(top = 7.dp, bottom = 6.dp)
             .pullRefresh(pullRefreshState)
     ) {
 
@@ -138,7 +135,9 @@ fun TrackListScreen(onBannerClick: () -> Unit, viewModel: TrackListViewModel = h
         if (isPolling) {
             CircularProgressIndicator(
                 color = Color.White,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 30.dp)
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 30.dp)
             )
         }
     }
@@ -171,43 +170,23 @@ fun Banner(onBannerClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onBannerClick() // Navigate to the "services" screen
+                onBannerClick()
             }
-            .padding(4.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFF1E1E1E)),
+            .clip(RoundedCornerShape(4.dp)),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.new_album_placeholder_300)
+                    .data(R.drawable.banner_servicios)
                     .crossfade(true)
                     .build(),
-                contentScale = ContentScale.Crop
             ),
-            contentDescription = "Album Art Placeholder",
+            contentDescription = "Services banner",
             modifier = Modifier
-                .padding(8.dp)
-                .size(56.dp) // Adjusted to look proportional
-                .clip(RoundedCornerShape(8.dp)) // Apply rounded corners here
+                .clip(RoundedCornerShape(10.dp))
+                .height(74.dp)
         )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "BANNER SERVICIOS",
-                color = Color.White,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "BANNER SERVICIOS",
-                color = Color.Gray,
-                fontSize = 12.sp
-            )
-        }
     }
 }
 
