@@ -1,6 +1,5 @@
 package com.apploading.bnmallorca.bncore
 
-import android.util.Log
 import com.apploading.bnmallorca.R
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
