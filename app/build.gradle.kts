@@ -15,8 +15,8 @@ android {
         applicationId = "com.apploading.bnmallorca"
         minSdk = 29
         targetSdk = 35
-        versionCode = 24102501
-        versionName = "2.2.0"
+        versionCode = 24102601
+        versionName = "2.2.0-20241026-01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
