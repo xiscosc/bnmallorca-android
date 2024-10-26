@@ -28,6 +28,7 @@ class TrackViewModel @Inject constructor(
             artist = track.artist,
             name = track.name,
             albumArtUrl = TrackManager.getAlbumArtUrl(track) ?: "",
+            isLoading = track.id == TrackManager.LOADING_TRACK_ID
         )
     }
 
@@ -45,4 +46,5 @@ data class TrackInfo(
     val artist: String,
     val name: String,
     val albumArtUrl: String,
+    val isLoading: Boolean
 )
