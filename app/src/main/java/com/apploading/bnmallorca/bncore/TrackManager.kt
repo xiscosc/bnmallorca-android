@@ -16,16 +16,23 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 class TrackManager @Inject constructor(@Named("trackSharedPreferences") private val trackPreferences: SharedPreferences) {
-    private val preferenceListeners = mutableMapOf<String, SharedPreferences.OnSharedPreferenceChangeListener>()
+    private val preferenceListeners =
+        mutableMapOf<String, SharedPreferences.OnSharedPreferenceChangeListener>()
 
     @Inject
     lateinit var playManager: PlayManager
 
+    private val loadingTrack: Track = Track("", "Cargando", "Por favor espere...", 0, emptyList())
+
     fun storeTrackFromPushNotification(notification: String) {
-        val track = buildTrackFromPushNotification(notification)
         if (playManager.isPlaying()) {
+            val track = buildTrackFromPushNotification(notification)
             storeTrack(track, false)
         }
+    }
+
+    fun setTrackLoading() {
+        storeTrack(loadingTrack, true)
     }
 
     suspend fun updateLastTrackFromApi() {

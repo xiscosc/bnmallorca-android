@@ -166,18 +166,19 @@ class MediaPlaybackService : MediaSessionService() {
                     .setMediaMetadata(metaCopy)
                     .build()
 
+                trackManager.setTrackLoading()
+                playManager.storePlayingStatus(true)
                 this.setMediaItem(itemCopy)
-                this.prepare()
-                super.play()
                 scope.launch {
                     try {
                         pushManager.registerDevice(null)
                         trackManager.updateLastTrackFromApi()
-                        playManager.storePlayingStatus(true)
                     } catch (e: Exception) {
                         return@launch
                     }
                 }
+                this.prepare()
+                super.play()
             }
 
             override fun pause() {
