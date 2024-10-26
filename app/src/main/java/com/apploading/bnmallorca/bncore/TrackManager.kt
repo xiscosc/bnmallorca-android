@@ -18,9 +18,14 @@ import kotlin.time.toDuration
 class TrackManager @Inject constructor(@Named("trackSharedPreferences") private val trackPreferences: SharedPreferences) {
     private val preferenceListeners = mutableMapOf<String, SharedPreferences.OnSharedPreferenceChangeListener>()
 
+    @Inject
+    lateinit var playManager: PlayManager
+
     fun storeTrackFromPushNotification(notification: String) {
         val track = buildTrackFromPushNotification(notification)
-        storeTrack(track, false)
+        if (playManager.isPlaying()) {
+            storeTrack(track, false)
+        }
     }
 
     suspend fun updateLastTrackFromApi() {

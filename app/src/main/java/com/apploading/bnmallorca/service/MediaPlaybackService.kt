@@ -99,6 +99,35 @@ class MediaPlaybackService : MediaSessionService() {
         }
     }
 
+    private fun updateMediaNotificationFromPlayPause() {
+        val isPlaying = playManager.isPlaying()
+        val track = trackManager.getCurrentTrack()
+        if (!isPlaying && mediaSession?.player?.currentMediaItem !== null) {
+            Log.d(TAG, "Updating media player notification...")
+            val media = mediaSession!!.player.currentMediaItem!!
+            val metaCopy = media.mediaMetadata
+                .buildUpon()
+                .setArtist("BN Mallorca")
+                .setTitle("Radio")
+                .setArtworkUri(Uri.parse(defaultAlbumArt))
+                .build()
+
+            val itemCopy = media.buildUpon()
+                .setMediaMetadata(metaCopy)
+                .build()
+
+            mediaSession!!.player.replaceMediaItem(0, itemCopy)
+
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                nBuilder.setSubText(TrackManager.filterTrackString(track.artist))
+                nBuilder.setContentTitle(TrackManager.filterTrackString(track.name))
+                notificationManager.notify(1, nBuilder.build())
+            }
+        } else {
+            updateMediaNotification()
+        }
+    }
+
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
@@ -115,6 +144,7 @@ class MediaPlaybackService : MediaSessionService() {
         }
 
         trackManager.registerOnTrackChangeListener(sharedPreferencesListenerKey) { updateMediaNotification() }
+        playManager.registerOnPlayChangeListener(sharedPreferencesListenerKey) { updateMediaNotificationFromPlayPause() }
 
         val audioAttributes = AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build()
@@ -139,11 +169,11 @@ class MediaPlaybackService : MediaSessionService() {
                 this.setMediaItem(itemCopy)
                 this.prepare()
                 super.play()
-                playManager.storePlayingStatus(true)
                 scope.launch {
                     try {
                         pushManager.registerDevice(null)
                         trackManager.updateLastTrackFromApi()
+                        playManager.storePlayingStatus(true)
                     } catch (e: Exception) {
                         return@launch
                     }
@@ -281,6 +311,7 @@ class MediaPlaybackService : MediaSessionService() {
         }
 
         trackManager.unregisterOnTrackChangeListener(sharedPreferencesListenerKey)
+        playManager.unregisterOnPlayChangeListener(sharedPreferencesListenerKey)
         unregisterReceiver(playPauseReceiver)
         playManager.storePlayingStatus(false)
         super.onDestroy()

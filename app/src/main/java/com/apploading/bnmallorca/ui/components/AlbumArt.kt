@@ -26,11 +26,16 @@ import coil.request.ImageRequest
 import com.apploading.bnmallorca.R
 import com.apploading.bnmallorca.ui.helpers.screenSize
 import com.apploading.bnmallorca.ui.helpers.textSize
+import com.apploading.bnmallorca.views.PlayingViewModel
 import com.apploading.bnmallorca.views.TrackViewModel
 
 @Composable
-fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
+fun AlbumArt(
+    trackViewModel: TrackViewModel = hiltViewModel(),
+    playingViewModel: PlayingViewModel = hiltViewModel()
+) {
     val trackInfo by trackViewModel.trackInfoFlow.collectAsState()
+    val playingStatus by playingViewModel.playingStatusFlow.collectAsState()
 
     val albumArtSize = screenSize(350.dp, 300.dp)
     Column(
@@ -41,7 +46,7 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(trackInfo.albumArtUrl.ifEmpty { R.drawable.new_album_placeholder_600 })
+                    .data(if (playingStatus) trackInfo.albumArtUrl.ifEmpty { R.drawable.new_album_placeholder_600 } else R.drawable.new_album_placeholder_600)
                     .placeholder(R.drawable.new_album_placeholder_600) // Show this while loading
                     .error(R.drawable.new_album_placeholder_600) // Show this if there's an error
                     .crossfade(true)
@@ -61,7 +66,7 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
                 .padding(top = 10.dp)
         ) {
             Text(
-                text = trackInfo.name, // Observed track name
+                text = if (playingStatus) trackInfo.name else "BN Mallorca", // Observed track name
                 fontSize = textSize(22.sp),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
@@ -70,7 +75,7 @@ fun AlbumArt(trackViewModel: TrackViewModel = hiltViewModel()) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = trackInfo.artist, // Observed artist name
+                text = if (playingStatus) trackInfo.artist else "Radio", // Observed artist name
                 fontSize = textSize(18.sp),
                 color = Color.White,
                 maxLines = 1, // Limit to one line
