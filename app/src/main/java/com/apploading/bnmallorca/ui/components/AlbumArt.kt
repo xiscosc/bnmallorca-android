@@ -44,7 +44,7 @@ fun AlbumArt(
     val trackInfo by trackViewModel.trackInfoFlow.collectAsState()
     val playingStatus by playingViewModel.playingStatusFlow.collectAsState()
 
-    val albumArtSize = screenSize(350.dp, 300.dp)
+    val albumArtSize = screenSize(318.dp, 273.dp)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -117,7 +117,7 @@ fun AlbumArt(
                 )
             } else {
                 Text(
-                    text = if (playingStatus) trackInfo.name else "BN Mallorca",
+                    text = if (playingStatus) trackInfo.name else "",
                     fontSize = textSize(22.sp),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -127,7 +127,7 @@ fun AlbumArt(
                 )
 
                 Text(
-                    text = if (playingStatus) trackInfo.artist else "Radio",
+                    text = if (playingStatus) trackInfo.artist else "",
                     fontSize = textSize(18.sp),
                     color = Color.White,
                     maxLines = 1, // Limit to one line

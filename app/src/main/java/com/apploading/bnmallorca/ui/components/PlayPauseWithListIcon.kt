@@ -42,23 +42,22 @@ fun PlayPauseWithListIcon(
         val icon = if (playingStatus) R.drawable.pause_button else R.drawable.play_button
         Image(
             painter = painterResource(id = icon),
-            contentDescription = "Play/Pause Button",
+            contentDescription = "Play/Pause",
             modifier = Modifier
-                .size(screenSize(125.dp, 100.dp)) // Size adjusted for prominence
+                .size(screenSize(114.dp, 91.dp))
                 .clickable {
                     onPlayPauseClick()
                 }
         )
 
         if (showPlayList) {
-            // List Icon
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.FormatListBulleted,
                 contentDescription = "Playlist",
                 tint = if (playListShown) Color.DarkGray else Color.White,
                 modifier = Modifier
-                    .size(screenSize(40.dp, 35.dp))
-                    .offset(x = screenSize(100.dp, 80.dp)) // Space between the list icon and the play/pause button
+                    .size(screenSize(40.dp, 30.dp))
+                    .offset(x = screenSize(91.dp, 72.dp))
                     .clickable { onListClick() }
             )
         }

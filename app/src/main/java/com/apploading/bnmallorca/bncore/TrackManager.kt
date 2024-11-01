@@ -23,7 +23,7 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
     lateinit var playManager: PlayManager
 
     fun storeTrackFromPushNotification(notification: String) {
-        if (playManager.isPlaying()) {
+        if (playManager.isPlaying() && getCurrentTrack().id != LOADING_TRACK_ID) {
             val track = buildTrackFromPushNotification(notification)
             storeTrack(track, false)
         }
@@ -84,7 +84,7 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
     }
 
     companion object {
-        public const val LOADING_TRACK_ID = "loading id"
+        const val LOADING_TRACK_ID = "loading id"
         private const val TRACK_PREFERENCES = "track_preferences"
         private val defaultTrack = Track(
             id = "0",
