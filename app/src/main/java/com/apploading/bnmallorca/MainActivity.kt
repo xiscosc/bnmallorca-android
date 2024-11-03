@@ -9,11 +9,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
@@ -47,6 +51,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var playManager: PlayManager
 
+    @Inject
+    lateinit var remoteSettingsManager: RemoteSettingsManager
+
     private lateinit var appUpdateManager: AppUpdateManager
     private val updateType = AppUpdateType.IMMEDIATE
 
@@ -68,7 +75,7 @@ class MainActivity : ComponentActivity() {
 
         // Check for updates on app launch
         checkForAppUpdate()
-        RemoteSettingsManager.setupSettings()
+        remoteSettingsManager.setupSettings()
         val sessionToken = SessionToken(this, ComponentName(this, MediaPlaybackService::class.java))
         mediaControllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         mediaControllerFuture.addListener({
@@ -79,6 +86,14 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 Surface(color = Color.Black) {
                     MainScreen(mediaControllerFuture, true)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                ErrorNotifier.errorFlow.collect { _ ->
+                    showErrorMessage()
                 }
             }
         }
@@ -144,6 +159,16 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    private fun showErrorMessage() {
+        val builder = android.app.AlertDialog.Builder(this)
+        builder.setTitle("Problema al iniciar la applicación")
+        builder.setMessage("La aplicación no pudo iniciarse correctamente. Si el problema persiste, reinstale la aplicación.")
+        builder.setPositiveButton("Cerrar") { dialog, _ ->
+            dialog.dismiss()
+            finishAffinity()
+        }
+        builder.show()
+    }
 }
 
 @Composable

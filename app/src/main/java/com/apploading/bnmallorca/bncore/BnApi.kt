@@ -28,9 +28,9 @@ interface BnApi {
     suspend fun unregisterDevice(@Body data: RegisterDeviceBody)
 
     companion object {
-        fun build(): BnApi {
+        fun build(settings: BnMallorcaSettings): BnApi {
             return Retrofit.Builder()
-                .baseUrl(RemoteSettingsManager.getSettings().apiEndpoint)
+                .baseUrl(settings.apiEndpoint)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(BnApi::class.java)

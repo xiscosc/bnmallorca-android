@@ -5,13 +5,15 @@ import android.content.SharedPreferences
 import javax.inject.Inject
 import javax.inject.Named
 
-class PushManager @Inject constructor(@Named("pushSharedPreferences") private val pushPreferences: SharedPreferences) {
+class PushManager @Inject constructor(
+    @Named("pushSharedPreferences") private val pushPreferences: SharedPreferences,
+    private val remoteSettingsManager: RemoteSettingsManager
+) {
     private val pushField = "push_token"
-
     fun pushInfoIsStored() = getPushToken() !== ""
 
     suspend fun unregisterDevice() {
-        val api = BnApi.build()
+        val api = BnApi.build(this.remoteSettingsManager.getSettings())
         val oldToken = getPushToken()
         if (oldToken !== "") {
             api.unregisterDevice(
@@ -24,7 +26,7 @@ class PushManager @Inject constructor(@Named("pushSharedPreferences") private va
     }
 
     suspend fun registerDevice(token: String?) {
-        val api = BnApi.build()
+        val api = BnApi.build(this.remoteSettingsManager.getSettings())
         if (token !== null) {
             unregisterDevice()
             storePushToken(token)

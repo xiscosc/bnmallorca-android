@@ -5,7 +5,16 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -25,12 +34,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.apploading.bnmallorca.R
-import com.apploading.bnmallorca.bncore.RemoteSettingsManager
+import com.apploading.bnmallorca.views.RemoteSettingsViewModel
 
 @Composable
-fun ContactScreen() {
+fun ContactScreen(remoteSettingsViewModel: RemoteSettingsViewModel = hiltViewModel()) {
     val context = LocalContext.current
+    val settings = remoteSettingsViewModel.remoteSettingsManager.getSettings()
 
     Column(
         modifier = Modifier
@@ -52,10 +63,13 @@ fun ContactScreen() {
         // Phone Row
         ContactItem(
             icon = Icons.Default.Phone,
-            text = RemoteSettingsManager.getSettings().phone ?: "",
+            text = settings.phone ?: "",
             contentDescription = "Phone",
             onClick = {
-                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + RemoteSettingsManager.getSettings().phone))
+                val intent = Intent(
+                    Intent.ACTION_DIAL,
+                    Uri.parse("tel:" + settings.phone)
+                )
                 context.startActivity(intent)
             }
         )
@@ -63,11 +77,12 @@ fun ContactScreen() {
         // Email Row
         ContactItem(
             icon = Icons.Default.Email,
-            text = RemoteSettingsManager.getSettings().mail  ?: "",
+            text = settings.mail ?: "",
             contentDescription = "Email",
             onClick = {
                 val intent = Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("mailto:" + RemoteSettingsManager.getSettings().mail)
+                    data =
+                        Uri.parse("mailto:" + settings.mail)
                     putExtra(Intent.EXTRA_SUBJECT, "Inquiry")
                 }
                 context.startActivity(intent)
@@ -77,12 +92,12 @@ fun ContactScreen() {
         // Address Row
         ContactItem(
             icon = Icons.Default.Map,
-            text = RemoteSettingsManager.getSettings().addressDisplay  ?: "",
+            text = settings.addressDisplay ?: "",
             contentDescription = "Address",
             onClick = {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse(RemoteSettingsManager.getSettings().addressGeoLink)
+                    Uri.parse(settings.addressGeoLink)
                 )
                 context.startActivity(intent)
             }
@@ -109,7 +124,7 @@ fun ContactScreen() {
                 onClick = {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse(RemoteSettingsManager.getSettings().instagramWebUrl)
+                        Uri.parse(settings.instagramWebUrl)
                     )
                     context.startActivity(intent)
                 }
@@ -121,7 +136,7 @@ fun ContactScreen() {
                 onClick = {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse(RemoteSettingsManager.getSettings().facebookWebUrl)
+                        Uri.parse(settings.facebookWebUrl)
                     )
                     context.startActivity(intent)
                 }

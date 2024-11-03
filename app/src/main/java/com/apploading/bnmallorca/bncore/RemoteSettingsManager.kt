@@ -1,30 +1,46 @@
 package com.apploading.bnmallorca.bncore
 
+import ErrorNotifier
 import com.apploading.bnmallorca.R
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RemoteSettingsManager {
-    companion object {
-        fun getSettings(): BnMallorcaSettings {
+class RemoteSettingsManager @Inject constructor() {
+    private val emptyConfig = BnMallorcaSettings("", "http://localhost",
+        "", "", "", "",
+        "", "", "", "", "",
+        "", "")
+
+    fun getSettings(): BnMallorcaSettings {
+        return try {
             val configString = Firebase.remoteConfig.getString("configuration")
-            return Gson().fromJson(configString, BnMallorcaSettings::class.java)
-        }
-
-        fun setupSettings() {
-            val remoteConfig = Firebase.remoteConfig
-            val configSettings = remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 3600
+            Gson().fromJson(configString, BnMallorcaSettings::class.java)
+        } catch (e: Exception) {
+            CoroutineScope(Dispatchers.Main).launch {
+                ErrorNotifier.emitError("Failed to fetch settings")
             }
-
-            remoteConfig.setConfigSettingsAsync(configSettings)
-            remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
-            remoteConfig.fetchAndActivate()
+            return emptyConfig
         }
     }
+
+    fun setupSettings() {
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 3600
+        }
+
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+        remoteConfig.fetchAndActivate()
+    }
+
 }
 
 data class BnMallorcaSettings(

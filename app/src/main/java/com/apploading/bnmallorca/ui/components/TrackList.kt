@@ -19,9 +19,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.IosShare
-import androidx.compose.material.icons.filled.Redo
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -50,11 +48,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.apploading.bnmallorca.R
-import com.apploading.bnmallorca.bncore.RemoteSettingsManager
 import com.apploading.bnmallorca.bncore.Track
 import com.apploading.bnmallorca.bncore.TrackManager
 import com.apploading.bnmallorca.ui.components.ListElement
 import com.apploading.bnmallorca.ui.components.Loading
+import com.apploading.bnmallorca.views.RemoteSettingsViewModel
 import com.apploading.bnmallorca.views.TrackListViewModel
 import java.time.Instant
 import java.time.ZoneId
@@ -170,7 +168,10 @@ fun TrackList(
 }
 
 @Composable
-fun Banner(onBannerClick: () -> Unit) {
+fun Banner(
+    onBannerClick: () -> Unit,
+    remoteSettingsViewModel: RemoteSettingsViewModel = hiltViewModel()
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -191,7 +192,8 @@ fun Banner(onBannerClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = RemoteSettingsManager.getSettings().servicesBannerText ?: "",
+                text = remoteSettingsViewModel.remoteSettingsManager.getSettings().servicesBannerText
+                    ?: "",
                 color = Color.White,
                 fontSize = 14.sp,
                 modifier = Modifier
@@ -212,32 +214,44 @@ fun Banner(onBannerClick: () -> Unit) {
 }
 
 @Composable
-fun TrackItem(track: Track) {
+fun TrackItem(track: Track, remoteSettingsViewModel: RemoteSettingsViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    ListElement(albumArtUrl = TrackManager.getAlbumArtUrl(track, false), content = {
-        Text(
-            text = track.name,
-            color = Color.White,
-            fontSize = 16.sp,
-            maxLines = 1, // Limit to one line
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "${track.artist} · ${getAgoString(track)}",
-            color = Color.Gray,
-            fontSize = 12.sp,
-            maxLines = 1, // Limit to one line
-            overflow = TextOverflow.Ellipsis
-        )
-    }, icon = {
-        Icon(
-            imageVector = Icons.Filled.IosShare,
-            contentDescription = "Share",
-            tint = Color.White,
-            modifier = Modifier.size(30.dp)
-        )
-    }, onIconClick = { shareText(context, track) }, imageModifier = Modifier.size(72.dp))
+    ListElement(
+        albumArtUrl = TrackManager.getAlbumArtUrl(track, false),
+        content = {
+            Text(
+                text = track.name,
+                color = Color.White,
+                fontSize = 16.sp,
+                maxLines = 1, // Limit to one line
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${track.artist} · ${getAgoString(track)}",
+                color = Color.Gray,
+                fontSize = 12.sp,
+                maxLines = 1, // Limit to one line
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        icon = {
+            Icon(
+                imageVector = Icons.Filled.IosShare,
+                contentDescription = "Share",
+                tint = Color.White,
+                modifier = Modifier.size(30.dp)
+            )
+        },
+        onIconClick = {
+            shareText(
+                context,
+                track,
+                remoteSettingsViewModel.remoteSettingsManager.getSettings().appDownloadUrl
+            )
+        },
+        imageModifier = Modifier.size(72.dp)
+    )
 }
 
 @Composable
@@ -285,9 +299,9 @@ fun getAgoString(track: Track): String {
     return formatter.format(instant)
 }
 
-fun shareText(context: Context, track: Track) {
+fun shareText(context: Context, track: Track, appDownloadUrl: String) {
     val message =
-        "He escuchado ${track.name} de ${track.artist} en la app de BN Mallorca, bájatela aquí ${RemoteSettingsManager.getSettings().appDownloadUrl}"
+        "He escuchado ${track.name} de ${track.artist} en la app de BN Mallorca, bájatela aquí $appDownloadUrl"
     val intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, message)

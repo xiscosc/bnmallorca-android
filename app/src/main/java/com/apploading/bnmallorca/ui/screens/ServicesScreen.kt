@@ -13,17 +13,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.apploading.bnmallorca.bncore.RemoteSettingsManager
-
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.apploading.bnmallorca.views.RemoteSettingsViewModel
 
 @Composable
-fun ServicesScreen() {
-    val context = LocalContext.current
+fun ServicesScreen(remoteSettingsViewModel: RemoteSettingsViewModel = hiltViewModel()) {
 
     Column(
         modifier = Modifier
@@ -63,7 +61,7 @@ fun ServicesScreen() {
                     // Set the WebView client
                     webViewClient = WebViewClient()
                     webViewClient = WebViewClient()
-                    loadUrl(RemoteSettingsManager.getSettings().servicesUrl)
+                    loadUrl(remoteSettingsViewModel.remoteSettingsManager.getSettings().servicesUrl)
                 }
             }
         )

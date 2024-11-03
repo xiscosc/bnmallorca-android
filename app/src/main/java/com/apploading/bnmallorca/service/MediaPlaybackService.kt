@@ -50,6 +50,9 @@ class MediaPlaybackService : MediaSessionService() {
     @Inject
     lateinit var playManager: PlayManager
 
+    @Inject
+    lateinit var remoteSettingsManager: RemoteSettingsManager
+
     private val job = SupervisorJob()
     private val sharedPreferencesListenerKey = "mediaPlayer"
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -152,7 +155,7 @@ class MediaPlaybackService : MediaSessionService() {
         val forwardingPlayer = object : ForwardingPlayer(player) {
             override fun play() {
                 val track = trackManager.getCurrentTrack()
-                val uri = Uri.parse(RemoteSettingsManager.getSettings().streamingUrl)
+                val uri = Uri.parse(remoteSettingsManager.getSettings().streamingUrl)
                 val current = MediaItem.fromUri(uri)
                 val metaCopy = current.mediaMetadata
                     .buildUpon()

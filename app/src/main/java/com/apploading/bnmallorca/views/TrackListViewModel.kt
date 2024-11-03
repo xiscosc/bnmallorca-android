@@ -11,7 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class TrackListViewModel @Inject constructor() : ViewModel() {
+class TrackListViewModel @Inject constructor(private val trackManager: TrackManager) : ViewModel() {
 
     private val _trackList = MutableStateFlow<List<Track>>(emptyList())
     val trackList: StateFlow<List<Track>> get() = _trackList
@@ -32,7 +32,7 @@ class TrackListViewModel @Inject constructor() : ViewModel() {
             _errorMessage.value = null
             try {
                 _isLoading.value = true
-                val response = TrackManager.getTrackList(lastTrack = lastTrack)
+                val response = trackManager.getTrackList(lastTrack = lastTrack)
                 _trackList.value = response.tracks
                 lastTrack = response.lastTrack // Store the lastTrack for subsequent calls
             } catch (e: Exception) {
@@ -48,7 +48,7 @@ class TrackListViewModel @Inject constructor() : ViewModel() {
             _errorMessage.value = null
             try {
                 _isPolling.value = true
-                val response = TrackManager.getTrackList(lastTrack = lastTrack)
+                val response = trackManager.getTrackList(lastTrack = lastTrack)
                 _trackList.value += response.tracks
                 lastTrack = response.lastTrack // Store the lastTrack for subsequent calls
             } catch (e: Exception) {

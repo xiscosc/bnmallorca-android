@@ -15,7 +15,10 @@ import javax.inject.Named
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-class TrackManager @Inject constructor(@Named("trackSharedPreferences") private val trackPreferences: SharedPreferences) {
+class TrackManager @Inject constructor(
+    @Named("trackSharedPreferences") private val trackPreferences: SharedPreferences,
+    private val remoteSettingsManager: RemoteSettingsManager
+) {
     private val preferenceListeners =
         mutableMapOf<String, SharedPreferences.OnSharedPreferenceChangeListener>()
 
@@ -34,7 +37,7 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
     }
 
     suspend fun updateLastTrackFromApi() {
-        val api = BnApi.build()
+        val api = BnApi.build(this.remoteSettingsManager.getSettings())
         val track = try {
             val tracks = api.getLastTrack().tracks
             if (tracks.isEmpty()) defaultTrack else tracks[0]
@@ -42,7 +45,15 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
             defaultTrack
         }
 
-        storeTrack(track, true)
+        val filteredTrack = Track(
+            track.id,
+            filterTrackString(track.name),
+            filterTrackString(track.artist),
+            track.timestamp,
+            track.albumArt
+        )
+
+        storeTrack(filteredTrack, true)
     }
 
     fun getCurrentTrack(): Track {
@@ -67,6 +78,11 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
             trackPreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener)
             preferenceListeners.remove(key)
         }
+    }
+
+    suspend fun getTrackList(lastTrack: Number?): TrackResponse {
+        val api = BnApi.build(this.remoteSettingsManager.getSettings())
+        return api.getLastTracks(lastTrack = lastTrack)
     }
 
     private fun storeTrack(
@@ -96,11 +112,6 @@ class TrackManager @Inject constructor(@Named("trackSharedPreferences") private 
 
         fun getAlbumArtUrl(track: Track, highestQuality: Boolean = true): String? {
             return getAlbumArtUrl(track.albumArt, highestQuality)
-        }
-
-        suspend fun getTrackList(lastTrack: Number?): TrackResponse {
-            val api = BnApi.build()
-            return api.getLastTracks(lastTrack = lastTrack)
         }
 
         fun getAlbumArtUrl(albumArts: List<AlbumArt>, highestQuality: Boolean = true): String? {
