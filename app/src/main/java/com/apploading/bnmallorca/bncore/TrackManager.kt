@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
+import com.apploading.bnmallorca.bncore.PushManager.Companion
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +39,7 @@ class TrackManager @Inject constructor(
     }
 
     suspend fun updateLastTrackFromApi() {
+        Log.d(TAG, "Getting last track from API")
         val api = BnApi.build(this.remoteSettingsManager.getSettings())
         val track = try {
             val tracks = api.getLastTrack().tracks
@@ -53,6 +56,7 @@ class TrackManager @Inject constructor(
             track.albumArt
         )
 
+        Log.d(TAG, "Last track from API: $filteredTrack")
         storeTrack(filteredTrack, true)
     }
 
@@ -100,6 +104,7 @@ class TrackManager @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "TrackManager"
         const val LOADING_TRACK_ID = "loading id"
         private const val TRACK_PREFERENCES = "track_preferences"
         private val defaultTrack = Track(
