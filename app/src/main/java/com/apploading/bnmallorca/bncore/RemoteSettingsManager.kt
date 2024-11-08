@@ -16,7 +16,7 @@ class RemoteSettingsManager @Inject constructor() {
     private val emptyConfig = BnMallorcaSettings("", "http://localhost",
         "", "", "", "",
         "", "", "", "", "",
-        "", "")
+        "", "", "")
 
     fun getSettings(): BnMallorcaSettings {
         return try {
@@ -56,5 +56,6 @@ data class BnMallorcaSettings(
     @SerializedName("phone") val phone: String?,
     @SerializedName("address_display") val addressDisplay: String?,
     @SerializedName("address_geo_link") val addressGeoLink: String?,
-    @SerializedName("services_banner_text") val servicesBannerText: String?
+    @SerializedName("services_banner_text") val servicesBannerText: String?,
+    @SerializedName("share_song_string") val shareSongString: String?
 )

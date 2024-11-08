@@ -247,7 +247,8 @@ fun TrackItem(track: Track, remoteSettingsViewModel: RemoteSettingsViewModel = h
             shareText(
                 context,
                 track,
-                remoteSettingsViewModel.remoteSettingsManager.getSettings().appDownloadUrl
+                remoteSettingsViewModel.remoteSettingsManager.getSettings().appDownloadUrl,
+                remoteSettingsViewModel.remoteSettingsManager.getSettings().shareSongString
             )
         },
         imageModifier = Modifier.size(72.dp)
@@ -299,9 +300,13 @@ fun getAgoString(track: Track): String {
     return formatter.format(instant)
 }
 
-fun shareText(context: Context, track: Track, appDownloadUrl: String) {
-    val message =
+fun shareText(context: Context, track: Track, appDownloadUrl: String, shareString: String?) {
+    val message = if (shareString.isNullOrBlank()) {
         "He escuchado ${track.name} de ${track.artist} en la app de BN Mallorca, bájatela aquí $appDownloadUrl"
+    } else {
+        shareString.replace("##song_name##", track.name).replace("##artist##", track.artist)
+    }
+
     val intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, message)

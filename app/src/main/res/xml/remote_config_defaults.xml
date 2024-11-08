@@ -2,10 +2,6 @@
 <defaults>
   <entry>
     <key>configuration</key>
-    <value>{"streaming_url":"https://stream.recasound.es/proxy/bnmallorca/stream","services_url":"https://bnmallorca.grupofantome.com/","app_download_url":"https://tosto.re/bnmallorca","api_endpoint":"https://api.bnmallorca.com","instagram_web_url":"https://www.instagram.com/bnmallorcaradio/","instagram_app_url":"instagram://user?username=bnmallorcaradio","facebook_web_url":"https://www.facebook.com/102766099772454/","facebook_app_url":"fb://profile/BNMallorcaRadio?id=102766099772454","mail":"info@bnmallorca.com","phone":"+34 971 72 51 50","address_display":"C/ Posada de Lluc 8\nLocal 3\n07001\nPalma\nBaleares","address_geo_link":"geo:0,0?q=C%2F+Posada+de+Lluc+8+%2C+07001%2C+Palma+de+Mallorca%2C+Baleares","services_banner_text":"Conoce nuestros servicios de marketing y publicidad!"}</value>
-  </entry>
-  <entry>
-    <key>streaming_url</key>
-    <value>https://stream.recasound.es/proxy/bnmallorca/stream</value>
+    <value>{"streaming_url":"https://stream.recasound.es/proxy/bnmallorca/stream","services_url":"https://bnmallorca.grupofantome.com/","app_download_url":"https://tosto.re/bnmallorca","share_song_string":"He escuchado ##song_name## de ##artist## en la app de BN MALLORCA Radio, bájatela aquí https://tosto.re/bnmallorca","api_endpoint":"https://api.bnmallorca.com","instagram_web_url":"https://www.instagram.com/bnmallorcaradio/","instagram_app_url":"instagram://user?username=bnmallorcaradio","facebook_web_url":"https://www.facebook.com/102766099772454/","facebook_app_url":"fb://profile/BNMallorcaRadio?id=102766099772454","mail":"info@bnmallorca.com","phone":"+34 971 72 51 50","address_display":"C/ Posada de Lluc 8\nLocal 3\n07001\nPalma\nBaleares","address_geo_link":"geo:0,0?q=C%2F+Posada+de+Lluc+8+%2C+07001%2C+Palma+de+Mallorca%2C+Baleares","services_banner_text":"PUBLICIDAD / PRODUCCIONES"}</value>
   </entry>
 </defaults>

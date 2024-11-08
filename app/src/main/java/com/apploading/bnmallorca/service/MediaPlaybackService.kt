@@ -18,6 +18,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -77,43 +78,29 @@ class MediaPlaybackService : MediaSessionService() {
     }
 
     private fun updateMediaNotification() {
-        val track = trackManager.getCurrentTrack()
-        Log.d(TAG, "New track received: $track")
-        if (mediaSession?.player?.isPlaying == true) {
-            Log.d(TAG, "Updating media player notification...")
-            val media = mediaSession!!.player.currentMediaItem!!
-            val metaCopy = media.mediaMetadata
-                .buildUpon()
-                .setArtist(TrackManager.filterTrackString(track.artist))
-                .setTitle(TrackManager.filterTrackString(track.name))
-                .setArtworkUri(Uri.parse(TrackManager.getAlbumArtUrl(track) ?: defaultAlbumArt))
-                .build()
-
-            val itemCopy = media.buildUpon()
-                .setMediaMetadata(metaCopy)
-                .build()
-
-            mediaSession!!.player.replaceMediaItem(0, itemCopy)
-
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-                nBuilder.setSubText(TrackManager.filterTrackString(track.artist))
-                nBuilder.setContentTitle(TrackManager.filterTrackString(track.name))
-                notificationManager.notify(1, nBuilder.build())
+        if (mediaSession?.player?.currentMediaItem !== null) {
+            val isPlaying = playManager.isPlaying()
+            val (artist, name, albumArt) = if (isPlaying) {
+                val track = trackManager.getCurrentTrack()
+                Log.d(TAG, "Updating media player notification with track...")
+                Log.d(TAG, "New track received: $track")
+                Triple(
+                    TrackManager.filterTrackString(track.artist),
+                    TrackManager.filterTrackString(track.name),
+                    TrackManager.getAlbumArtUrl(track) ?: defaultAlbumArt
+                )
+            } else {
+                Log.d(TAG, "Updating media player notification with to empty...")
+                Triple("BN Mallorca", "Radio", defaultAlbumArt)
             }
-        }
-    }
 
-    private fun updateMediaNotificationFromPlayPause() {
-        val isPlaying = playManager.isPlaying()
-        val track = trackManager.getCurrentTrack()
-        if (!isPlaying && mediaSession?.player?.currentMediaItem !== null) {
             Log.d(TAG, "Updating media player notification...")
             val media = mediaSession!!.player.currentMediaItem!!
             val metaCopy = media.mediaMetadata
                 .buildUpon()
-                .setArtist("BN Mallorca")
-                .setTitle("Radio")
-                .setArtworkUri(Uri.parse(defaultAlbumArt))
+                .setArtist(artist)
+                .setTitle(name)
+                .setArtworkUri(Uri.parse(albumArt))
                 .build()
 
             val itemCopy = media.buildUpon()
@@ -123,12 +110,12 @@ class MediaPlaybackService : MediaSessionService() {
             mediaSession!!.player.replaceMediaItem(0, itemCopy)
 
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-                nBuilder.setSubText(TrackManager.filterTrackString(track.artist))
-                nBuilder.setContentTitle(TrackManager.filterTrackString(track.name))
+                nBuilder.setSubText(artist)
+                nBuilder.setContentTitle(name)
                 notificationManager.notify(1, nBuilder.build())
             }
         } else {
-            updateMediaNotification()
+            Log.d(TAG, "No current media item to update notification")
         }
     }
 
@@ -148,11 +135,12 @@ class MediaPlaybackService : MediaSessionService() {
         }
 
         trackManager.registerOnTrackChangeListener(sharedPreferencesListenerKey) { updateMediaNotification() }
-        playManager.registerOnPlayChangeListener(sharedPreferencesListenerKey) { updateMediaNotificationFromPlayPause() }
+        playManager.registerOnPlayChangeListener(sharedPreferencesListenerKey) { updateMediaNotification() }
 
         val audioAttributes = AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build()
         val player = ExoPlayer.Builder(this).setAudioAttributes(audioAttributes, true).build()
+
         val forwardingPlayer = object : ForwardingPlayer(player) {
             override fun play() {
                 val track = trackManager.getCurrentTrack()
@@ -186,31 +174,22 @@ class MediaPlaybackService : MediaSessionService() {
                 this.prepare()
                 super.play()
             }
-
-            override fun pause() {
-                super.pause()
-                playManager.storePlayingStatus(false)
-                scope.launch {
-                    try {
-                        pushManager.unregisterDevice()
-                    } catch (e: Exception) {
-                        return@launch
-                    }
-                }
-            }
-
-            override fun stop() {
-                super.stop()
-                playManager.storePlayingStatus(false)
-                scope.launch {
-                    try {
-                        pushManager.unregisterDevice()
-                    } catch (e: Exception) {
-                        return@launch
-                    }
-                }
-            }
         }
+
+        forwardingPlayer.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (!isPlaying) {
+                    playManager.storePlayingStatus(false)
+                    scope.launch {
+                        try {
+                            pushManager.unregisterDevice()
+                        } catch (e: Exception) {
+                            return@launch
+                        }
+                    }
+                }
+            }
+        })
 
         mediaSession = MediaSession.Builder(this, forwardingPlayer).build()
         this.setMediaNotificationProvider(object : MediaNotification.Provider {
@@ -265,7 +244,10 @@ class MediaPlaybackService : MediaSessionService() {
                     nBuilder.setLargeIcon(albumArtBitmap)
                 } else {
                     nBuilder.setLargeIcon(
-                        BitmapFactory.decodeResource(resources, R.drawable.new_album_placeholder_300)
+                        BitmapFactory.decodeResource(
+                            resources,
+                            R.drawable.new_album_placeholder_300
+                        )
                     )
                 }
                 notificationManager.notify(1, nBuilder.build())
