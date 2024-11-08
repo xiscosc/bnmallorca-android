@@ -1,5 +1,6 @@
 package com.apploading.bnmallorca.ui.screens
 
+import ErrorDisplay
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -54,7 +55,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = hiltViewModel()) {
         if (isLoading) {
             Loading()
         } else if (errorMessage != null) {
-            Text(text = "No se ha podido cargar la programación, inténtelo más tarde.", color = Color.White)
+            ErrorDisplay()
         } else {
             LazyColumn {
                 items(schedule) { day ->

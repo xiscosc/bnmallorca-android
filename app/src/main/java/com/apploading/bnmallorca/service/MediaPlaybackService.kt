@@ -18,6 +18,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -188,6 +189,13 @@ class MediaPlaybackService : MediaSessionService() {
                         }
                     }
                 }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                super.onPlayerError(error)
+                playManager.storePlayingStatus(false)
+                if (forwardingPlayer.isPlaying) forwardingPlayer.stop()
+                Log.e(TAG, "Player error")
             }
         })
 

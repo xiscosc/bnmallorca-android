@@ -1,5 +1,9 @@
 package com.apploading.bnmallorca.ui.screens
 
+import ErrorDisplay
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -10,6 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,7 +30,7 @@ import com.apploading.bnmallorca.views.RemoteSettingsViewModel
 
 @Composable
 fun ServicesScreen(remoteSettingsViewModel: RemoteSettingsViewModel = hiltViewModel()) {
-
+    var isConnected by remember { mutableStateOf(true) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -40,30 +48,35 @@ fun ServicesScreen(remoteSettingsViewModel: RemoteSettingsViewModel = hiltViewMo
             modifier = Modifier.padding(bottom = 16.dp).padding(horizontal = 16.dp)
         )
 
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                WebView(context).apply {
-                    // Enable zoom controls and scaling
-                    // Enable JavaScript
-                    settings.javaScriptEnabled = true
+        if (isConnected) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    WebView(context).apply {
+                        settings.javaScriptEnabled = true
+                        settings.useWideViewPort = true
+                        settings.loadWithOverviewMode = true
+                        settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+                        setInitialScale(1)
 
-                    // Ensure the WebView scales content to fit the screen
-                    settings.useWideViewPort = true
-                    settings.loadWithOverviewMode = true
-
-                    // Adjust layout to fit the content within the screen
-                    settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
-
-                    // Force the initial scale to 100% to fit the screen width
-                    setInitialScale(1)
-
-                    // Set the WebView client
-                    webViewClient = WebViewClient()
-                    webViewClient = WebViewClient()
-                    loadUrl(remoteSettingsViewModel.remoteSettingsManager.getSettings().servicesUrl)
+                        webViewClient = object : WebViewClient() {
+                            override fun onReceivedError(
+                                view: WebView?,
+                                request: WebResourceRequest?,
+                                error: WebResourceError?
+                            ) {
+                                super.onReceivedError(view, request, error)
+                                if (request?.isForMainFrame == true) {
+                                    isConnected = false
+                                }
+                            }
+                        }
+                        loadUrl(remoteSettingsViewModel.remoteSettingsManager.getSettings().servicesUrl)
+                    }
                 }
-            }
-        )
+            )
+        } else {
+            ErrorDisplay()
+        }
     }
 }

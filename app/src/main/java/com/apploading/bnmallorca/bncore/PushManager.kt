@@ -3,7 +3,6 @@ package com.apploading.bnmallorca.bncore
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.apploading.bnmallorca.service.MediaPlaybackService
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -15,45 +14,53 @@ class PushManager @Inject constructor(
     fun pushInfoIsStored() = getPushToken() !== ""
 
     suspend fun unregisterDevice() {
-        val api = BnApi.build(this.remoteSettingsManager.getSettings())
-        val oldToken = getPushToken()
-        Log.d(TAG, "Unregistering device")
-        if (oldToken !== "") {
-            api.unregisterDevice(
-                RegisterDeviceBody(
-                    token = oldToken,
-                    type = "android"
+        try {
+            val api = BnApi.build(this.remoteSettingsManager.getSettings())
+            val oldToken = getPushToken()
+            Log.d(TAG, "Unregistering device")
+            if (oldToken !== "") {
+                api.unregisterDevice(
+                    RegisterDeviceBody(
+                        token = oldToken,
+                        type = "android"
+                    )
                 )
-            )
-            Log.d(TAG, "Device unregistered")
+                Log.d(TAG, "Device unregistered")
+            }
+        } catch (e: Error) {
+            Log.e(TAG, "API Connection error")
         }
     }
 
     suspend fun registerDevice(token: String?) {
         Log.d(TAG, "Registering device")
         val api = BnApi.build(this.remoteSettingsManager.getSettings())
-        if (token !== null) {
-            unregisterDevice()
-            storePushToken(token)
-            api.registerDevice(
-                RegisterDeviceBody(
-                    token = token,
-                    type = "android"
-                )
-            )
-            Log.d(TAG, "Registering device with new token")
-        } else {
-            Log.d(TAG, "Re-Registering device")
-            // Re-registering the same token
-            val oldToken = getPushToken()
-            if (oldToken !== "") {
+        try {
+            if (token !== null) {
+                unregisterDevice()
+                storePushToken(token)
                 api.registerDevice(
                     RegisterDeviceBody(
-                        token = oldToken,
+                        token = token,
                         type = "android"
                     )
                 )
+                Log.d(TAG, "Registering device with new token")
+            } else {
+                Log.d(TAG, "Re-Registering device")
+                // Re-registering the same token
+                val oldToken = getPushToken()
+                if (oldToken !== "") {
+                    api.registerDevice(
+                        RegisterDeviceBody(
+                            token = oldToken,
+                            type = "android"
+                        )
+                    )
+                }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "API Connection error")
         }
     }
 

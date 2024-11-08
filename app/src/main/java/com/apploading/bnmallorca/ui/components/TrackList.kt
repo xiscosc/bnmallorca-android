@@ -116,10 +116,7 @@ fun TrackListScreen(onBannerClick: () -> Unit, viewModel: TrackListViewModel = h
             if (isLoading && !isRefreshing) {
                 Loading()
             } else if (errorMessage != null) {
-                Text(
-                    text = "No se ha podido cargar la lista de canciones, inténtelo de nuevo más tarde.",
-                    color = Color.White
-                )
+                ErrorDisplay()
             } else {
                 TrackList(tracks = trackList, listState, onBannerClick)
             }
